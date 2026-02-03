@@ -64,13 +64,13 @@ plib_setup (int argc, char *argv[])
 	
 	// Enable value parsing on some 
 	// arguments
-	plib_ForEach (template, json_index, pl)
+	plib_ForEach (template+1, json_index+1, pl)
 		plib_ToggleProperty (plib_Arg, PLIB_TAKESVALUE);
 	
 
 	// Set arguments template through to 
 	// input_file as required
-	plib_ForEach (template,input_file, pl)
+	plib_ForEach (template+1,input_file+1, pl)
 		plib_ToggleProperty (plib_Arg, PLIB_REQUIRED);
 	
 	// Handle basic errors
@@ -87,13 +87,12 @@ plib_setup (int argc, char *argv[])
 		if (PL_RETURN.code != PL_ARG_NONE)
 		  {
 			char *error_arg = 
-				/* if */ (PL_RETURN.code == PL_NO_REQUIRED_ARG) ? 
-					pl[PL_RETURN.index].flag : 
-				/* else */
-					plib_ErrorArgument;
+				(PL_RETURN.code == PL_NO_REQUIRED_ARG) ? 
+					pl[PL_RETURN.index].flag : // get the required flag name
+					plib_ErrorArgument; // get the error string from argv
 
 			// Print error data
-			help ("Error: %s (%s)\n", plib_Error, plib_ErrorArgument);
+			help ("Error: %s (%s)\n", plib_Error, error_arg);
 			return -1;
 		  } 
 		
