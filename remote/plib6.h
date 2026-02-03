@@ -227,10 +227,10 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 	}
 
 	// Check for required arguments 
-	for (int i=0; i < PL_ARG_IDX; i++)
-		if (plib_ReadProperty(ar[i].opt, PLIB_REQUIRED) && !ar[i].idx)
+	out->index = 0;
+	for (; out->index < PL_ARG_IDX; out->index++)
+		if (plib_ReadProperty(ar[out->index].opt, PLIB_REQUIRED) && !ar[out->index].idx)
 		  {
-			out->index = 0;
 			return out->code = PL_NO_REQUIRED_ARG;
 		  }
 

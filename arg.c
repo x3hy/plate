@@ -1,0 +1,188 @@
+/**
+ * This file handles all command line arguments,
+ */
+#ifndef ARG_C
+#define ARG_C
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "remote/plib6.h"
+
+
+// Runs the plib
+// help dialog then 
+// prints whatever
+#define help(...) \
+	plib_HelpMenu(pl); \
+	fprintf(stderr, __VA_ARGS__)
+
+static char *suffix;
+static char *prefix;
+static int json_array_index = -1; // json index
+
+enum {
+	template,
+	input_link,
+	input_file,
+	json_file,
+	json_string,
+	suf,
+	pre,
+	output,
+	json_path,
+	json_index,
+	help,
+	end_arg
+};
+
+// Argument string list
+static struct plib_Argument pl[end_arg] = {
+	[template]    = {"--template",    "-t", "Enter the template as a string value"},
+	[input_file]  = {"--input",       "-i", "Input file"},
+	[input_link]  = {"--input-link",  "-L", "Set input reference link, defaults to <!--PLATE-->"},
+	[json_file]   = {"--json-file",   "-J", "Enter json data as a file"},
+	[json_string] = {"--json-string", "-j", "Use string JSON instead of file"},
+	[suf]         = {"--suffix",      "-s", "Set the end delimiter for value substitution"},
+	[pre]         = {"--prefix",      "-p", "Set the start delimiter for value searching"},
+	[output]      = {"--output-file", "-o", "Set output file location, defaults to stdout"},
+	[json_path]   = {"--json-path",   "-p", "SSet the path for json data, defaults to."},
+	[json_index]  = {"--json-index",  "-I", "Set index of array at end of json path."},
+	[help]       = {"--help",         "-h", "Display this dialog."}
+};
+
+
+static int
+plib_setup (int argc, char *argv[])
+{
+
+	// Initialize arguments and
+	// enable all.
+	plib_CreateArgAndForAll (pl)
+		plib_ToggleProperty(plib_Arg, PLIB_ENABLED);
+
+	
+	// Enable value parsing on some 
+	// arguments
+	plib_ForEach (template, json_index, pl)
+		plib_ToggleProperty (plib_Arg, PLIB_TAKESVALUE);
+	
+
+	// Set arguments template through to 
+	// input_file as required
+	plib_ForEach (template,input_file, pl)
+		plib_ToggleProperty (plib_Arg, PLIB_REQUIRED);
+	
+	// Handle basic errors
+	ifnot_plib_Parse (pl)
+	  {
+		printf ("Options: \n");
+		
+	
+		// PL_RETURN.code == PL_ARG_NONE, 
+		// then no args where given, I 
+		// don't think this warrents a 
+		// "error" so instead we give 
+		// a different dialog
+		if (PL_RETURN.code != PL_ARG_NONE)
+		  {
+			char *error_arg = 
+				/* if */ (PL_RETURN.code == PL_NO_REQUIRED_ARG) ? 
+					pl[PL_RETURN.index].flag : 
+				/* else */
+					plib_ErrorArgument;
+
+			// Print error data
+			help ("Error: %s (%s)\n", plib_Error, plib_ErrorArgument);
+			return -1;
+		  } 
+		
+		// No Args given dialog
+		help ("No arguments provided.\n");
+		return 1; 
+	  }
+
+	// Handle --help
+	if (plib_SArgRun (pl[help]))
+	  {
+		plib_HelpMenu (pl);
+		return 1;
+	  }
+
+	// Handle --prefix
+	if (plib_SArgRun (pl[pre]))
+	  {
+		prefix = strdup (plib_SArgValue (pl[pre], 0));
+		// Default prefix (HTML)
+	  } else prefix = strdup ("<!--$");
+
+	// Handle --suffix
+	if (plib_SArgRun (pl[suf]))
+	  {
+		suffix = strdup (plib_SArgValue (pl[suf], 0));
+		// Default suffix (HTML)
+	  } else suffix = strdup ("-->");
+	
+	// Check if data was provided
+	if (!plib_SArgRun (pl[json_string]) && 
+			!plib_SArgRun (pl[json_file]))
+	  {
+		help("Must provide either %s or %s.\n",
+				pl[json_string].flag,
+				pl[json_file].flag);
+		return 1;
+	  }
+
+	// Check if data file is valid
+	if (plib_SArgRun (pl[json_file]))
+	  {
+		const char *path = plib_SArgValue(pl[json_file], 0);
+		FILE *fp = fopen (path, "r");
+
+		// If file does not exist
+		if (!fp)
+		  {
+			help ("Failed to open \"%s\"\n", path);
+			return 1;
+		  }
+		fclose (fp);
+	  }
+
+	// Check if input file is valid
+	while (0) 
+	  {
+		const char *path = plib_SArgValue (pl[input_file], 0);
+		FILE *fp = fopen (path, "r");
+
+		// If file does not exist
+		if (!fp)
+		  {
+			help ("Failed to open \"%s\"\n", path);
+			return 1;
+		  }
+		fclose (fp);
+	  } 
+
+	// Set json_array_indx
+	if (plib_SArgRun (pl[json_index]))
+	  {
+		const char *str = plib_SArgValue (pl[json_index], 0);
+		const int idx = atoi (str);
+
+		if (idx == 0 && strcmp(str, "0") == 0)
+		  {
+			help (
+				"%s must be an int, or if the value"
+				"is zero use \"0\" not \"%s\".\n", 
+				pl[json_index].flag,
+				str);
+			return 1;
+		  }
+
+		// INT was validated
+		json_array_index = idx;
+	  }
+	
+	return 0;
+}
+#endif

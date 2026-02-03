@@ -1,0 +1,111 @@
+/**
+ * This file handles all argument parsing,
+ * I've used my own library PLib for this.
+ **/
+#include "include.h"
+#include "remote/plib6.h"
+
+// run help and print
+// message after 
+#define help(...) \
+	plib_HelpMenu(pl); \
+	printf(__VA_ARGS__)
+
+static char *suffix;
+static char *prefix;
+static int index = -1; // json index
+
+enum {
+	template,
+	json_file,
+	input_file,
+	input_link,
+	suf,
+	pre,
+	output,
+	json_path,
+	json_index,
+	help,
+	end_arg
+};
+
+// Argument string list
+static struct plib_Argument pl[end_arg] = {
+	[template]   = {"--template", "-t", "Enter the template as a string value"},
+	[json_file]  = {"--json-file",       "-J", "Enter json data as a file"},
+	[input_file] = {"--input",           "-i", "Input file"},
+	[input_link] = {"--input-link",      "-L", "Set input reference link, defaults to <!--PLATE-->"},
+	[suf]        = {"--suffix",          "-s", "Set the end delimiter for value substitution"},
+	[pre]        = {"--prefix",          "-p", "Set the start delimiter for value searching"},
+	[output]     = {"--output-file",     "-o", "Set output file location, defaults to stdout"},
+	[json_path]  = {"--json-path",       "-p", "Set the path for json data, defaults to."},
+	[json_index] = {"--json-index",      "-I", "Set index of array at end of json path."},
+
+	// Misc
+	[help]       = {"--help",            "-h", "Display this dialog."}
+};
+
+
+int
+plib_setup (int argc, char *argv[])
+{
+	// Initialize arguments and
+	// enable all.
+	plib_CreateArgAndForAll (pl)
+		plib_ToggleProperty(plib_Arg, PLIB_ENABLED);
+
+	// Enable value parsing on some 
+	// arguments
+	plib_ForEach (template, json_index, pl)
+		plib_ToggleProperty (plib_Arg, PLIB_TAKESVALUE);
+	
+	// Set arguments template through to 
+	// input_file as required
+	plib_ForEach (template,input_file, pl)
+		plib_ToggleProperty (plib_Arg, PLIB_REQUIRED);
+	
+	// Handle errors
+	ifnot_plib_Parse (pl)
+	  {
+		printf ("Options: \n");
+		
+		// PL_RETURN.code == PL_ARG_NONE, 
+		// then no args where given, I 
+		// don't think this warrents a 
+		// "error" so instead we give 
+		// a different dialog
+		if (PL_RETURN.code != PL_ARG_NONE)
+		  {
+			// Print error data
+			help("Error: %s (%s)\n", plib_Error, plib_ErrorArgument);
+			return -1;
+		  }
+		
+		// No Args given dialog
+		help ("No arguments provided.%s\n", "");
+		return 1;
+	  }
+
+	// Handle --help
+	if (plib_SArgRun (pl[help]))
+	  {
+		plib_HelpMenu (pl);
+		return 1;
+	  }
+
+	// Handle --prefix
+	if plib_SArgRun (pl[pre])
+	  {
+		trig_prefix = strdup(plib_SArgValue(pl[pre], 0));
+		// Default prefix (HTML)
+	  } else trig_prefix = strdup ("<!--$");
+
+	// Handle --suffix
+	if plib_SArgRun (pl[suf])
+	  {
+		trig_suffix = strdup(plib_SArgValue(pl[suf], 0));
+		// Default suffix (HTML)
+	  } else trig_suffix = strdup ("-->");
+	
+	return 0;
+}
