@@ -1,4 +1,4 @@
-// `plib 6.1.8`
+// `plib 6.0.1`
 #ifndef PLIB_6
 #define PLIB_6
 
@@ -38,20 +38,14 @@ enum {
 // various error codes, makes the 
 // display part of error handling 
 // easier on the development end.
-//
-// if youre writing a argument handler
-// feel free to change these strings and 
-// use the plib_Error macro to get the 
-// following indexes from the return
-// codes enum above.
 static const char *_plib_return_strings[__PL_RETURN_COUNT__] = {
-	[PL_SUCCESS]         = "Successful",
-	[PL_ARG_NONE]        = "No arguments where given",
-	[PL_ARG_NOT_FOUND]   = "Argument was not found",
-	[PL_ARG_VALUE]       = "Argument takes a value",
-	[PL_ARG_NO_VALUE]    = "Argument does not take a value",
-	[PL_TO_MANY_VALUES]  = "Argument does not take multiple arguments",
-	[PL_NO_REQUIRED_ARG] = "Required argument was not provided",
+	[PL_SUCCESS]         = "SUCCESS",
+	[PL_ARG_NONE]        = "ARG_NONE",
+	[PL_ARG_NOT_FOUND]   = "ARG_NOT_FOUND",
+	[PL_ARG_VALUE]       = "ARG_VALUE",
+	[PL_ARG_NO_VALUE]    = "ARG_NO_VALUE",
+	[PL_TO_MANY_VALUES]  = "TO_MANY_VALUES",
+	[PL_NO_REQUIRED_ARG] = "NO_REQUIRED_ARG",
 	[PL_INTERNAL_ERROR]  = "INTERNAL_ERROR"
 };
 
@@ -103,7 +97,7 @@ static struct plib_Return PL_RETURN = (struct plib_Return){0};
 
 // Property list.
 enum { 
-	PLIB_ENABLED, PLIB_TAKESVALUE, 
+	PLIB_TAKESVALUE, PLIB_ENABLED, 
 	PLIB_TAKESVALUES, PLIB_REQUIRED, 
 	PLIB_ENDARGUMENTLIST 
 };
@@ -117,7 +111,6 @@ _plib_strcmp (char *s1, char *s2)
         s1++;
         s2++;
       }
-
     return *s1 - *s2;
 }
 
@@ -132,16 +125,6 @@ _plib_strlen (char *str)
 	return str_s+1;
 }
 
-// If an argument fails to parse within 
-// the parse function this macro reverts
-// changes to the argv index so that error
-// codes show relivant argument information.
-// This function is suppost to be called 
-// in place of return, this is where 'e' 
-// comes in. _plib_strlen () is just a 
-// custom strlen without <string.h>.
-
-// Assume v already has a null terminator
 #define undo_return(e, v, u) \
 	do { \
 		v[0] = '\0'; \
@@ -151,7 +134,7 @@ _plib_strlen (char *str)
 		return e; \
 	} while(0)
 
-#include <stdio.h>
+
 
 // Iterates through all string arguments
 // and parses them with the provided 
@@ -193,6 +176,7 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 			if (v[out->index][arg_s] == split_char)
 				split = arg_s;
 
+
 		// Separate key and value from argument string
 		char key[arg_s-split];
 		for (int i = 0; i < arg_s; i++)
@@ -222,8 +206,8 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 			undo_return(out->code = PL_ARG_NOT_FOUND, v[out->index], undo);
 
 		// Argument propertys
-		const int val_provided    = split != 0 && v[out->index][0] != '\0';
-		const int arg_takes_val   = plib_ReadProperty(ar[arg_s].opt, PLIB_TAKESVALUE);
+		const int val_provided    = split != 0;
+		const int arg_takes_val   = plib_ReadProperty(ar[arg_s].opt, PLIB_TAKESVALUE) == 1;
 		const int arg_enabled     = plib_ReadProperty(ar[arg_s].opt, PLIB_ENABLED);
 		const int arg_value_count = ar[arg_s].idx; 
 		const int arg_multi_val   = plib_ReadProperty(ar[arg_s].opt, PLIB_TAKESVALUES);
@@ -244,20 +228,12 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 		ar[arg_s].vals[ar[arg_s].idx++] = out->index;
 	}
 
+	// Check for required arguments 
 	out->index = 0;
-
-	// we reset the out->index so that if an argument is required
-	// it will return the index of the required argument instead 
-	// of the index of the last parsed argument. 
-	//
-	// Look at https://github.com/x3hy/plate and open arg.c for a
-	// display of how you can manage required arguments.
 	for (; out->index < PL_ARG_IDX; out->index++)
 		if (plib_ReadProperty(ar[out->index].opt, PLIB_REQUIRED) 
-				&& !ar[out->index].idx){
-	printf("required arg %s\n", ar[out->index].flag);
+				&& !ar[out->index].idx)
 			return out->code = PL_NO_REQUIRED_ARG;
-			}
 
 	// Exit successfully
 	out->index = 0;
@@ -373,7 +349,7 @@ _plib_HelpMenu(struct plib_Argument *ar, plib_PrintFuncType print)
 
 // Returns string version
 // of an error code.
-#define plib_ErrorReason \
+#define plib_Error \
    	_plib_return_strings[PL_RETURN.code]
 
 // Parses arguments and acts as an if statement, the 
@@ -388,10 +364,8 @@ _plib_HelpMenu(struct plib_Argument *ar, plib_PrintFuncType print)
 
 // returns argv value of last 
 // parsed string argument
-#define plib_ErrorCause(ar) \
-	(PL_RETURN.code == PL_NO_REQUIRED_ARG) \
-		? ar[PL_RETURN.index].flag \
-		: argv[PL_RETURN.index]
+#define plib_ErrorArgument \
+	argv[PL_RETURN.index]
 
 // Conditional for if an argument was
 // run.
@@ -413,22 +387,18 @@ _plib_HelpMenu(struct plib_Argument *ar, plib_PrintFuncType print)
 //	argv[a.vals[0]]
 
 #define plib_ArgRun(a) (a->idx > 0)
-
 #define plib_SArgRun(a) (a.idx > 0)
 
 #define plib_ArgValueCount(a) a->idx
-
 #define plib_SArgValueCount(a) a.idx
 
 #define plib_ArgValue(a, n) \
 	(n < a->idx) ? argv[a->vals[n]] : NULL
-
 #define plib_SArgValue(a, n) \
 	(n < a.idx) ? argv[a.vals[n]] : NULL
 
 #define plib_ArgGetFirstValue(a) \
 	(a->idx > 0) ? argv[a->vals[0]] : NULL
-
 #define plib_SArgGetFirstValue(a) \
 	(a.idx > 0) ? argv[a.vals[0]] : NULL
 

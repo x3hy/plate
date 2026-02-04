@@ -83,6 +83,8 @@ main (int argc, char *argv[])
 		return -1;
 	  }
 
+	return 0;
+
 	// Load json file
 	//cJSON json = 
 
@@ -102,10 +104,11 @@ main (int argc, char *argv[])
 		if (strstr (line_buf, input_link_string))
 		  {		
 			// Detected the input link
-			
 
 		  }
 	  }
 
+	free (prefix);
+	free (suffix);
 	return 0;
 }

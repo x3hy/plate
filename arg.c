@@ -1,5 +1,11 @@
 /**
- * This file handles all command line arguments,
+ * This file handles all command line arguments using plib6.h,
+ * refer to the docs for plib.h for information about argument
+ * parsing.
+ *
+ * this file handles all checks on all arguments too, any files 
+ * that need to be validated or values that need to be validated
+ * will be validated in this file.
  */
 #ifndef ARG_C
 #define ARG_C
@@ -9,22 +15,14 @@
 #include <stdlib.h>
 #include "remote/plib6.h"
 
-
-// Runs the plib
-// help dialog then 
-// prints whatever
-#define help(...) \
-	plib_HelpMenu(pl); \
-	fprintf(stderr, __VA_ARGS__)
-
 static char *suffix;
 static char *prefix;
 static int json_array_index = -1; // json index
 
 enum {
 	template,
-	input_link,
 	input_file,
+	input_link,
 	json_file,
 	json_string,
 	suf,
@@ -46,11 +44,16 @@ static struct plib_Argument pl[end_arg] = {
 	[suf]         = {"--suffix",      "-s", "Set the end delimiter for value substitution"},
 	[pre]         = {"--prefix",      "-p", "Set the start delimiter for value searching"},
 	[output]      = {"--output-file", "-o", "Set output file location, defaults to stdout"},
-	[json_path]   = {"--json-path",   "-p", "SSet the path for json data, defaults to."},
+	[json_path]   = {"--json-path",   "-p", "Set the path for json data, defaults to."},
 	[json_index]  = {"--json-index",  "-I", "Set index of array at end of json path."},
 	[help]       = {"--help",         "-h", "Display this dialog."}
 };
 
+void print_byte_as_bits(char val) {
+  for (int i = 7; 0 <= i; i--)
+    putchar ((val & (1 << i)) ? '1' : '0');
+  putchar ('\n');
+}
 
 static int
 plib_setup (int argc, char *argv[])
@@ -59,19 +62,27 @@ plib_setup (int argc, char *argv[])
 	// Initialize arguments and
 	// enable all.
 	plib_CreateArgAndForAll (pl)
-		plib_ToggleProperty(plib_Arg, PLIB_ENABLED);
+		plib_ToggleProperty (plib_Arg, PLIB_ENABLED);
 
 	
 	// Enable value parsing on some 
 	// arguments
-	plib_ForEach (template+1, json_index+1, pl)
+	plib_ForEach (template, json_index+1, pl)
 		plib_ToggleProperty (plib_Arg, PLIB_TAKESVALUE);
 	
 
 	// Set arguments template through to 
 	// input_file as required
-	plib_ForEach (template+1,input_file+1, pl)
+	plib_ForEach (template,input_link+1, pl)
 		plib_ToggleProperty (plib_Arg, PLIB_REQUIRED);
+
+	// Debug lines, prints flag name and its 
+	// options.
+	/*plib_ForAll (pl){
+		printf ("%s - ", plib_Arg->flag);
+		print_byte_as_bits(plib_Arg->opt);
+	}*/
+
 	
 	// Handle basic errors
 	ifnot_plib_Parse (pl)
@@ -86,26 +97,24 @@ plib_setup (int argc, char *argv[])
 		// a different dialog
 		if (PL_RETURN.code != PL_ARG_NONE)
 		  {
-			char *error_arg = 
-				(PL_RETURN.code == PL_NO_REQUIRED_ARG) ? 
-					pl[PL_RETURN.index].flag : // get the required flag name
-					plib_ErrorArgument; // get the error string from argv
-
 			// Print error data
-			help ("Error: %s (%s)\n", plib_Error, error_arg);
+			fprintf (stderr, "Error: %s (%s - %d)\n", plib_ErrorReason, plib_ErrorCause(pl), PL_RETURN.index);
+			plib_HelpMenu (pl);
 			return -1;
 		  } 
 		
 		// No Args given dialog
-		help ("No arguments provided.\n");
+		fprintf (stderr, "No arguments provided.\n");
+		plib_HelpMenu (pl);
 		return 1; 
 	  }
+
 
 	// Handle --help
 	if (plib_SArgRun (pl[help]))
 	  {
 		plib_HelpMenu (pl);
-		return 1;
+		return 0;
 	  }
 
 	// Handle --prefix
@@ -121,15 +130,18 @@ plib_setup (int argc, char *argv[])
 		suffix = strdup (plib_SArgValue (pl[suf], 0));
 		// Default suffix (HTML)
 	  } else suffix = strdup ("-->");
+
+
+	int ret = 0;
 	
 	// Check if data was provided
 	if (!plib_SArgRun (pl[json_string]) && 
 			!plib_SArgRun (pl[json_file]))
 	  {
-		help("Must provide either %s or %s.\n",
+		  fprintf(stderr, "Must provide either %s or %s.\n",
 				pl[json_string].flag,
 				pl[json_file].flag);
-		return 1;
+		ret = 1;
 	  }
 
 	// Check if data file is valid
@@ -141,47 +153,49 @@ plib_setup (int argc, char *argv[])
 		// If file does not exist
 		if (!fp)
 		  {
-			help ("Failed to open \"%s\"\n", path);
-			return 1;
+			fprintf(stderr, 
+					"Failed to open JSON file \"%s\"\n", path);
+			ret = 1;
 		  }
-		fclose (fp);
+		else fclose (fp);
 	  }
 
 	// Check if input file is valid
-	while (0) 
+	const char *path = plib_SArgValue (pl[input_file], 0);
+	FILE *input_fp = fopen (path, "r");
+
+	// If file does not exist
+	if (!input_fp)
 	  {
-		const char *path = plib_SArgValue (pl[input_file], 0);
-		FILE *fp = fopen (path, "r");
+		fprintf (stderr,
+				"Failed to open input file \"%s\"\n", path);
+		ret = 1;
+	  }
+	else fclose (input_fp);
 
-		// If file does not exist
-		if (!fp)
-		  {
-			help ("Failed to open \"%s\"\n", path);
-			return 1;
-		  }
-		fclose (fp);
-	  } 
-
-	// Set json_array_indx
+	// Set json_array_index
 	if (plib_SArgRun (pl[json_index]))
 	  {
 		const char *str = plib_SArgValue (pl[json_index], 0);
 		const int idx = atoi (str);
 
-		if (idx == 0 && strcmp(str, "0") == 0)
+		if (idx <= 0 && strcmp (str, "0") != 0)
 		  {
-			help (
-				"%s must be an int, or if the value"
-				"is zero use \"0\" not \"%s\".\n", 
+			fprintf (stderr,
+				"%s must be an int => 0, or if the value "
+				"is zero use \"0\" not %s.\n", 
 				pl[json_index].flag,
 				str);
-			return 1;
+			ret = 1;
 		  }
 
 		// INT was validated
 		json_array_index = idx;
 	  }
+
+	if (ret != 0)
+		plib_HelpMenu (pl);
 	
-	return 0;
+	return ret;
 }
 #endif

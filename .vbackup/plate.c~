@@ -59,6 +59,7 @@
 int 
 main (int argc, char *argv[])
 {	
+
 	// handle arguments, read arg.c for the 
 	// information here.
 	const int ret = plib_setup (argc, argv);
@@ -67,6 +68,7 @@ main (int argc, char *argv[])
 		if (ret == 1) return 0;
 		else return ret;
 	  }
+
 
 	// Get the input file path 
 	// from arguments.
@@ -80,6 +82,9 @@ main (int argc, char *argv[])
 	  	fprintf (stderr,"Failed to open input file \"%s\".\n", input_file_path);
 		return -1;
 	  }
+
+	// Load json file
+	//cJSON json = 
 
 	// Create buffer for lines in input file
 	char *line_buf = malloc (BUF_SIZE * sizeof(char));
@@ -96,10 +101,12 @@ main (int argc, char *argv[])
 		const char *input_link_string = plib_SArgValue (pl[input_link], 0);
 		if (strstr (line_buf, input_link_string))
 		  {		
-			// Detected an input link
+			// Detected the input link
 
 		  }
 	  }
 
+	free (prefix);
+	free (suffix);
 	return 0;
 }
