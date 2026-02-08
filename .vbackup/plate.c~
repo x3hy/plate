@@ -65,6 +65,7 @@ main (int argc, char *argv[])
 	const int ret = plib_setup (argc, argv);
 	if (ret != 0)
 	  {
+
 		// if plib_setup returns a 0 then
 		// continue in plate.c if not 
 		// handle each code like so.
