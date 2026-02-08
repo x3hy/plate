@@ -58,7 +58,6 @@ void print_byte_as_bits(char val) {
 static int
 plib_setup (int argc, char *argv[])
 {
-
 	// Initialize arguments and
 	// enable all.
 	plib_CreateArgAndForAll (pl)

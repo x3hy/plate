@@ -45,6 +45,8 @@
  **/
 
 
+
+
 #include "arg.c"
 #include <stdio.h>
 #include <string.h>
@@ -55,10 +57,13 @@
 
 #define BUF_SIZE 128
 
-
 int 
 main (int argc, char *argv[])
 {	
+
+	#ifdef PLATE_V
+	printf ("Plate Version: %s\n", PLATE_V);
+	#endif
 
 	// handle arguments, read arg.c for the 
 	// information here.

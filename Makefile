@@ -1,8 +1,9 @@
 CC = cc
-CFLAGS := -O3 -g
+VERSION_MIN := $(shell git rev-list --count --all)
+CFLAGS := -O3 -g -DPLATE_V=\"1.0.$(VERSION_MIN)\"
 OS := $(shell uname -s)
 
-all: plate
+all: clean plate
 
 # Build Plate
 ifneq ($(filter $(OS),Linux Darwin),)
@@ -14,7 +15,7 @@ plate: plate.o
 	@if command -v "$(CC)" >/dev/null 2>&1; then
 		$(CC) $(CFLAGS) $^ -o $@
 		@if [  $$? -eq 0 ];then 
-			@echo "Built $@ sucessfully"
+			echo "Built $@ sucessfully"
 			exit 0
 		@else
 			@echo "Something went wrong."

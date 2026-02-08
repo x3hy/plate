@@ -7,6 +7,9 @@
  * that need to be validated or values that need to be validated
  * will be validated in this file.
  */
+#ifndef PLATE_VERSION
+#define PLATE_VERSION "0"
+#endif
 #ifndef ARG_C
 #define ARG_C
 
@@ -58,6 +61,7 @@ void print_byte_as_bits(char val) {
 static int
 plib_setup (int argc, char *argv[])
 {
+	printf("plate %s\n", PLATE_VERSION);
 
 	// Initialize arguments and
 	// enable all.
@@ -76,10 +80,12 @@ plib_setup (int argc, char *argv[])
 	plib_ForEach (template,input_link+1, pl)
 		plib_ToggleProperty (plib_Arg, PLIB_REQUIRED);
 
-	plib_ForAll (pl){
+	// Debug lines, prints flag name and its 
+	// options.
+	/*plib_ForAll (pl){
 		printf ("%s - ", plib_Arg->flag);
 		print_byte_as_bits(plib_Arg->opt);
-	}
+	}*/
 
 	
 	// Handle basic errors
