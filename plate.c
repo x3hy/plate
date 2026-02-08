@@ -42,12 +42,15 @@
  *
  * TODO:
  * Read examples.sh for examples on real examples of how you can use plate.
+ * Write template function.
+ * Write json array detetor,
+ * write error checker for json values (in template generator)
  **/
 
 
 
 
-#include "arg.c"
+#include "src/arg.c"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -88,9 +91,14 @@ main (int argc, char *argv[])
 		return -1;
 	  }
 
+	// Dat_path is the file location of the json data.
+	const char *dat_path = plib_SArgValue (pl[json_file], 0);
 
+	// location within the json.
+	const char *dat_loc  = plib_SArgValue (pl[json_path], 0);
+	
 	// Load json file
-	//cJSON json = 
+	//cJSON *json = load_json_file (dat_path, dat_loc)
 
 	// Create buffer for lines in input file
 	char *line_buf = malloc (BUF_SIZE * sizeof(char));
@@ -105,9 +113,14 @@ main (int argc, char *argv[])
 	while (fgets(line_buf, BUF_SIZE, fp))
 	  {
 		const char *input_link_string = plib_SArgValue (pl[input_link], 0);
+		const char *template_str = plib_SArgValue (pl[template], 0);
+
 		if (strstr (line_buf, input_link_string))
 		  {		
 			// Detected the input link
+			/*
+			 * char * template = gen_template (json, template_str)
+			 * */
 
 		  }
 	  }
