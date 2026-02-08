@@ -1,6 +1,6 @@
 CC = cc
 VERSION_MIN := $(shell git rev-list --count --all)
-CFLAGS := -O3 -g -DPLATE_V=\"$(VERSION_MIN)\"
+CFLAGS := -O3 -g -DPLATE_V=\"1.0.$(VERSION_MIN)\"
 OS := $(shell uname -s)
 
 all: clean plate

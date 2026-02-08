@@ -243,7 +243,13 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 		// Assign the value
 		ar[arg_s].vals[ar[arg_s].idx++] = out->index;
 	}
+	return out->code = PL_SUCCESS;
+}
 
+
+static int plib_CheckRequired (struct plib_Argument *ar)
+{
+	struct plib_Return *out = &PL_RETURN;
 	out->index = 0;
 
 	// we reset the out->index so that if an argument is required
@@ -254,10 +260,11 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 	// display of how you can manage required arguments.
 	for (; out->index < PL_ARG_IDX; out->index++)
 		if (plib_ReadProperty(ar[out->index].opt, PLIB_REQUIRED) 
-				&& !ar[out->index].idx){
-	printf("required arg %s\n", ar[out->index].flag);
+				&& !ar[out->index].idx)
+		  {
+			printf("required arg %s\n", ar[out->index].flag);
 			return out->code = PL_NO_REQUIRED_ARG;
-			}
+		  }
 
 	// Exit successfully
 	out->index = 0;

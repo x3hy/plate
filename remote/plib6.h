@@ -45,13 +45,13 @@ enum {
 // following indexes from the return
 // codes enum above.
 static const char *_plib_return_strings[__PL_RETURN_COUNT__] = {
-	[PL_SUCCESS]         = "Successful",
-	[PL_ARG_NONE]        = "No arguments where given",
-	[PL_ARG_NOT_FOUND]   = "Argument was not found",
-	[PL_ARG_VALUE]       = "Argument takes a value",
-	[PL_ARG_NO_VALUE]    = "Argument does not take a value",
-	[PL_TO_MANY_VALUES]  = "Argument does not take multiple arguments",
-	[PL_NO_REQUIRED_ARG] = "Required argument was not provided",
+	[PL_SUCCESS]         = "SUCCESS",
+	[PL_ARG_NONE]        = "ARG_NONE",
+	[PL_ARG_NOT_FOUND]   = "ARG_NOT_FOUND",
+	[PL_ARG_VALUE]       = "ARG_VALUE",
+	[PL_ARG_NO_VALUE]    = "ARG_NO_VALUE",
+	[PL_TO_MANY_VALUES]  = "TO_MANY_VALUES",
+	[PL_NO_REQUIRED_ARG] = "NO_REQUIRED_ARG",
 	[PL_INTERNAL_ERROR]  = "INTERNAL_ERROR"
 };
 
@@ -243,7 +243,13 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 		// Assign the value
 		ar[arg_s].vals[ar[arg_s].idx++] = out->index;
 	}
+	return out->code = PL_SUCCESS;
+}
 
+
+static int plib_CheckRequired (struct plib_Argument *ar)
+{
+	struct plib_Return *out = &PL_RETURN;
 	out->index = 0;
 
 	// we reset the out->index so that if an argument is required
@@ -254,10 +260,11 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 	// display of how you can manage required arguments.
 	for (; out->index < PL_ARG_IDX; out->index++)
 		if (plib_ReadProperty(ar[out->index].opt, PLIB_REQUIRED) 
-				&& !ar[out->index].idx){
-	printf("required arg %s\n", ar[out->index].flag);
+				&& !ar[out->index].idx)
+		  {
+			printf("required arg %s\n", ar[out->index].flag);
 			return out->code = PL_NO_REQUIRED_ARG;
-			}
+		  }
 
 	// Exit successfully
 	out->index = 0;

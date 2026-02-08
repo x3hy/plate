@@ -41,4 +41,6 @@ run: plate
 	@echo
 	./plate
 
+update:
+	git pull
 .PHONY: plate run

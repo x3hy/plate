@@ -60,16 +60,15 @@
 int 
 main (int argc, char *argv[])
 {	
-
-	#ifdef PLATE_V
-	printf ("Plate Version: %s\n", PLATE_V);
-	#endif
-
 	// handle arguments, read arg.c for the 
 	// information here.
 	const int ret = plib_setup (argc, argv);
 	if (ret != 0)
 	  {
+
+		// if plib_setup returns a 0 then
+		// continue in plate.c if not 
+		// handle each code like so.
 		if (ret == 1) return 0;
 		else return ret;
 	  }
@@ -88,7 +87,6 @@ main (int argc, char *argv[])
 		return -1;
 	  }
 
-	return 0;
 
 	// Load json file
 	//cJSON json = 
@@ -113,7 +111,7 @@ main (int argc, char *argv[])
 		  }
 	  }
 
-	free (prefix);
-	free (suffix);
+	//free (prefix);
+	//free (suffix);
 	return 0;
 }

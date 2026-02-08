@@ -31,6 +31,7 @@ enum {
 	json_path,
 	json_index,
 	help,
+	version,
 	end_arg
 };
 
@@ -46,7 +47,8 @@ static struct plib_Argument pl[end_arg] = {
 	[output]      = {"--output-file", "-o", "Set output file location, defaults to stdout"},
 	[json_path]   = {"--json-path",   "-p", "Set the path for json data, defaults to."},
 	[json_index]  = {"--json-index",  "-I", "Set index of array at end of json path."},
-	[help]       = {"--help",         "-h", "Display this dialog."}
+	[help]        = {"--help",        "-h", "Display this dialog."},
+	[version]     = {"--version",     "-v", "Show version number."}
 };
 
 void print_byte_as_bits(char val) {
@@ -113,7 +115,32 @@ plib_setup (int argc, char *argv[])
 	if (plib_SArgRun (pl[help]))
 	  {
 		plib_HelpMenu (pl);
-		return 0;
+		return 1;
+	  }
+
+	if (plib_SArgRun (pl[version]))
+	  {
+		#ifdef PLATE_V
+		puts (PLATE_V);
+		#else 
+		puts ("No version given\n");
+		#endif
+		return 1;
+	  }
+
+	// This handles required args, we do this after
+	// processing the --help and --version commands 
+	// that way if a required argument isent provided 
+	// the user can still use --help and --version 
+	// without the main error catch before. plib had
+	// to be updated as usually the required arguments
+	// are processed and detected in the same function 
+	// that processes the system arguments.
+	if (plib_CheckRequired (pl) != PL_SUCCESS)
+	  {
+		fprintf (stderr, "Error: %s (%s - %d)\n", plib_ErrorReason, plib_ErrorCause(pl), PL_RETURN.index);
+		plib_HelpMenu (pl);
+		return -1;
 	  }
 
 	// Handle --prefix
