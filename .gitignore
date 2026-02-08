@@ -2,3 +2,5 @@ gen
 .un~
 .vundo/**
 .vbackup/**
+plate.o
+plate
