@@ -37,14 +37,14 @@ enum {
 
 // Argument string list
 static struct plib_Argument pl[end_arg] = {
-	[template]    = {"--template",    "-t", "Enter the template as a string value"},
-	[input_file]  = {"--input",       "-i", "Input file"},
-	[input_link]  = {"--input-link",  "-L", "Set input reference link, defaults to <!--PLATE-->"},
-	[json_file]   = {"--json-file",   "-J", "Enter json data as a file"},
-	[json_string] = {"--json-string", "-j", "Use string JSON instead of file"},
-	[suf]         = {"--suffix",      "-s", "Set the end delimiter for value substitution"},
-	[pre]         = {"--prefix",      "-p", "Set the start delimiter for value searching"},
-	[output]      = {"--output-file", "-o", "Set output file location, defaults to stdout"},
+	[template]    = {"--template",    "-t", "Enter the template as a string value."},
+	[input_file]  = {"--input",       "-i", "Provide input file."},
+	[input_link]  = {"--input-link",  "-L", "Set input link, defaults to <!--PLATE-->."},
+	[json_file]   = {"--json-file",   "-J", "Enter json data as a file."},
+	[json_string] = {"--json-string", "-j", "Use string JSON instead of file."},
+	[suf]         = {"--suffix",      "-s", "Set the end delimiter for value substitution."},
+	[pre]         = {"--prefix",      "-p", "Set the start delimiter for value searching."},
+	[output]      = {"--output-file", "-o", "Set output file location, defaults to stdout."},
 	[json_path]   = {"--json-path",   "-p", "Set the path for json data, defaults to."},
 	[json_index]  = {"--json-index",  "-I", "Set index of array at end of json path."},
 	[help]        = {"--help",        "-h", "Display this dialog."},

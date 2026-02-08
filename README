@@ -1,1 +1,25 @@
-plate takes a json file, json path and a template, the template contains a string with some form of delimiter like <!--$VARNAME--> that is replaced with values from the json data. if the json data is an array then plate will iterate through it.
+Plate
+-------------------------
+
+THIS PROJECT IS A WORK IN PROGRESS!!! DO NOT EXPECT IT TO BE PERFECT
+-------------------------
+
+Plate is a basic tem(plate) generator for JSON. plate takes in a template and some JSON and will replace special triggers in the template with the values in the json. Plate can iterate through arrays of data and output templates of each part of the data. Plate also takes an input file where you can specifiy a "input trigger" that the template(s) will be written too.
+
+Plate was designed for generating static websites using data from json files. An example usecase would be a portfoio website that uses the GitHub api to populate its pages.
+
+-------------------------
+
+Options: 
+--template    | -t | Enter the template as a string value
+--input       | -i | Input file
+--input-link  | -L | Set input link, defaults to <!--PLATE-->
+--json-file   | -J | Enter json data as a file
+--json-string | -j | Use string JSON instead of file
+--suffix      | -s | Set the end delimiter for value substitution
+--prefix      | -p | Set the start delimiter for value searching
+--output-file | -o | Set output file location, defaults to stdout
+--json-path   | -p | Set the path for json data, defaults to.
+--json-index  | -I | Set index of array at end of json path.
+--help        | -h | Display this dialog.
+--version     | -v | Show version number.
