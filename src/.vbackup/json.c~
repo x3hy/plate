@@ -51,7 +51,6 @@ json_get_path (/*TODO cJSON *json,*/ char *path)
 					  {
 					  	break;
 					  }
-					idx_str[]
 				  }
 				j--;
 			  }

@@ -14,10 +14,10 @@
 
 
 static cJSON *
-json_get_path (/*TODO cJSON *json,*/ char *path)
+json_get_path (/*cJSON *json,*/ char *path)
 {if (!path) return NULL;
 
-	cJSON *out /*TODO = json*/;
+	cJSON *out;
 
 	// tok size
 	const int path_s = strlen (path);
@@ -29,44 +29,14 @@ json_get_path (/*TODO cJSON *json,*/ char *path)
 	  {
 		if (path[i] == '.')
 		  {
-			tok[i - tok_p] = '\0';
 			tok_p = i+1;
+			tok[tok_p] = '\0';
 
 			// tok is now valid
-		 	printf ("%s\n", tok);
-
-			// handle tok[idx];
-			int idx = 0;
-			int write = 0;
-			if (tok[i - tok_p - 1] == ']')
-			  {
-				const int tok_s = strlen(tok);
-				char *idx_str = (char *)malloc (tok_s);
-
-				// remove 
-				int j = (tok_s - 1);
-			  	while (j > 0)
-				  {
-					if (tok[j] == '[')
-					  {
-					  	break;
-					  }
-					idx_str[]
-				  }
-				j--;
-			  }
-
-			/*
-			TODO
-			cJSON_GetObjectItemCaseSensitive(out, tok);
-
-			// Path dosent exist.
-			if (!out) return out;
-			*/
+		 	printf ("%s\n", tok);	
 		  }
 		tok[i - tok_p] = path[i];		
 	  }
-	free (tok);
 	return out;
 }
 
