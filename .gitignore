@@ -1,6 +1,7 @@
 gen
 .un~
-.vundo/**
-.vbackup/**
+**/.vundo/**
+**/.vbackup/**
+
 plate.o
 plate
