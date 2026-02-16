@@ -54,3 +54,8 @@ make
 By default this is a debug build, to make and install a release version of plate do the following
 make MAKE_RELEASE=1
 (sudo) mv plate /usr/bin/plate
+
+if you are debugging this program and you see a weird error code changes are its just the builtin debug output messing it up, you can simply use the following to test the program and disable the debug
+make MAKE_RELEASE=1 test
+
+Read the Makefile file for more info.

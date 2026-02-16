@@ -174,14 +174,12 @@ static int
 get_json_value(cJSON *json, char *search, char **ptr)
 {
 	cJSON *value_json = cJSON_GetObjectItemCaseSensitive(json, search);
+	printf ("value: %s\n", value_json->valuestring);
+	return 0;
 	if (cJSON_IsString(value_json))
 	  {
-		*ptr = (char *)malloc (strlen (value_json->valuestring));
-
-		if (!*ptr)
-			return -1;
-	
-		strcpy (*ptr, value_json->valuestring);
+		*ptr = strdup (value_json->valuestring);
+		if (!*ptr) return -1;
 	  }
 	return 0;
 }
@@ -248,6 +246,8 @@ gen_template (cJSON *json, const char *template_in, const char *pre, const char 
 		
 				// apply string replace
 				template_out = replace_word (template_out, full_tag, value);
+				free (value);
+
 				if (!template_out)
 				  {
 					// template failed
