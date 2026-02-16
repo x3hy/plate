@@ -43,3 +43,14 @@ plate --template="$(cat mytemplate.htm)"
 
 Licencing:
 Please read plate.c for the license terms.
+
+-----------------------
+BUILDING:
+
+If you want to simply build the program you can do the following:
+make
+./plate
+
+By default this is a debug build, to make and install a release version of plate do the following
+make MAKE_RELEASE=1
+(sudo) mv plate /usr/bin/plate

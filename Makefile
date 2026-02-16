@@ -1,9 +1,18 @@
-CC = cc
-VERSION_MIN := $(shell git rev-list --count --all)
-CFLAGS := -O3 -g -DPLATE_V=\"1.0.$(VERSION_MIN)\"
-OS := $(shell uname -s)
+CC             := cc
+OS             := $(shell uname -s)
+VERSION_MIN    := $(shell git rev-list --count --all)
+CFLAGS         := -O3 -DPLATE_V=\"1.0.$(VERSION_MIN)\" 
+CFLAGS_RELEASE := -O3
+CFLAGS_DEBUG   := -g -fsanitize=address -fsanitize=undefined -O0
 
 all: clean plate
+
+# Debug
+ifndef MAKE_RELEASE
+CFLAGS := $(CFLAGS_BASE) $(CFLAGS_DEBUG)
+else
+CFLAGS := $(CFLAGS_BASE) $(CFLAGS_RELEASE)
+endif
 
 # Build Plate
 ifneq ($(filter $(OS),Linux Darwin),)
@@ -13,6 +22,7 @@ plate.o: plate.c
 .ONESHELL:
 plate: plate.o
 	if command -v "$(CC)" >/dev/null 2>&1; then
+		# Debug options
 		$(CC) $(CFLAGS) $^ -o $@
 		if [  $$? -eq 0 ];then 
 			@echo "Built $@ sucessfully"
@@ -35,7 +45,8 @@ clean:
 	rm -f plate
 	rm -f plate.o
 
+# Basic test
 test: plate
-	./plate -t='<span><!--$$name_l--></span>' -i="test.html" --json-file="data.json"
+	./plate -t='<span><!--$$name_l--></span>' -i="src/static/test.html" --json-file="src/static/data.json"
 
 .PHONY: plate run test

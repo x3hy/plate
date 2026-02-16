@@ -84,7 +84,7 @@ main (int argc, char *argv[])
 	// Get the input file path 
 	// from arguments.
 	const char * input_file_path = 
-		strdup (plib_SArgGetFirstValue(pl[input_file]));
+		strdup (plib_SArgGetFirstValue(pl[(int)input_file]));
 
 	// Open file
 	FILE *fp = fopen (input_file_path, "r");
@@ -95,14 +95,14 @@ main (int argc, char *argv[])
 	  }
 
 	// Dat_path is the file location of the json data.
-	const char *dat_path = plib_SArgValue (pl[json_file], 0);
+	const char *dat_path = plib_SArgValue (pl[(int)json_file], 0);
 
 	// location within the json.
-	const char *dat_loc  = plib_SArgValue (pl[json_path], 0);
+	const char *dat_loc  = plib_SArgValue (pl[(int)json_path], 0);
 
 	// Load json file
 	cJSON *json;
-	if (plib_SArgRun(pl[json_file]))
+	if (plib_SArgRun(pl[(int)json_file]))
 	  {
 		json = load_json_file (dat_path);
 		// Load json file
@@ -116,7 +116,7 @@ main (int argc, char *argv[])
 	else
 	  {
 		// Load json string 
-	  	json = cJSON_Parse (plib_SArgValue(pl[json_string], 0));
+	  	json = cJSON_Parse (plib_SArgValue(pl[(int)json_string], 0));
 		if (!json)
 		  {
 		  	const char *err = cJSON_GetErrorPtr ();
@@ -138,24 +138,24 @@ main (int argc, char *argv[])
 	  }
 
 	// get template as string
-	char *template = plib_SArgGetFirstValue(pl[template_string]);
+	char *template = plib_SArgGetFirstValue(pl[(int)template_string]);
 
 	// Get the suffix as a string
 	char *suffix_str;
-	if (plib_SArgRun(pl[suf]))
-		suffix_str = strdup(plib_SArgValue(pl[suf], 0));
+	if (plib_SArgRun(pl[(int)suf]))
+		suffix_str = strdup(plib_SArgValue(pl[(int)suf], 0));
 	else suffix_str = strdup("-->");
 
 	// get the prefix as a string
 	char *prefix_str;
 	if (plib_SArgRun(pl[pre]))
-		prefix_str = strdup (plib_SArgValue(pl[pre], 0));
+		prefix_str = strdup (plib_SArgValue(pl[(int)pre], 0));
 	else prefix_str = strdup ("<!--$");
 
 	// Read input file line by line
 	while (fgets(line_buf, BUF_SIZE, fp))
 	  {
-		const char *input_link_string = plib_SArgValue (pl[input_link], 0);
+		const char *input_link_string = plib_SArgValue (pl[(int)input_link], 0);
 		if (strstr (line_buf, input_link_string))
 		  {		
 			// Detected the input link
@@ -169,13 +169,18 @@ main (int argc, char *argv[])
 			  } else {*/
 				// causes segfault for some reason	
 				char *formatted_template = gen_template(json, template, suffix_str, suffix_str, '$');
+				if (!formatted_template)
+				  {
+				  	fprintf (stderr, "could not generate template, maybe your values are wrong..\n");
+					return 0;
+				  }
 				printf("%s\n", formatted_template);
 			  //}
 			return 0;
 		  }
 	  }
 
-	//free (prefix);
-	//free (suffix);
+	free (prefix);
+	free (suffix);
 	return 0;
 }

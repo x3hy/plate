@@ -89,8 +89,6 @@ json_get_path (cJSON *json, char *path)
 	return NULL;
 }
 
-#define file_exist(path) (fopen(path, "r") == NULL)
-
 // load a json file
 static cJSON *
 load_json_file (const char *path)
@@ -242,15 +240,25 @@ gen_template (cJSON *json, const char *template_in, const char *pre, const char 
 				// get value in json
 				char *value;
 				if (get_json_value (json, tok, &value))
+				  {
 					// couldent get the value
+					free (tok);
 					return NULL;
+				  }
 		
 				// apply string replace
 				template_out = replace_word (template_out, full_tag, value);
+				if (!template_out)
+				  {
+					// template failed
+					free (tok);
+					return NULL;
+				  }
 			  }
 		  }
 		tok = strtok (NULL, delim_char);
 	  }
+	free (tok);
 	return template_out;
 }
 #endif
