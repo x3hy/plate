@@ -89,7 +89,7 @@ json_get_path (cJSON *json, char *path)
 	return NULL;
 }
 
-#define file_exist(path) (fopen(path, "r") == NULL) ? 1 : 0;
+#define file_exist(path) (fopen(path, "r") == NULL)
 
 // load a json file
 static cJSON *
