@@ -20,7 +20,7 @@ static char *prefix;
 static int json_array_index = -1; // json index
 
 enum {
-	template,
+	template_string,
 	input_file,
 	input_link,
 	json_file,
@@ -37,7 +37,7 @@ enum {
 
 // Argument string list
 static struct plib_Argument pl[end_arg] = {
-	[template]    = {"--template",    "-t", "Enter the template as a string value."},
+	[template_string]    = {"--template",    "-t", "Enter the template as a string value."},
 	[input_file]  = {"--input",       "-i", "Provide input file."},
 	[input_link]  = {"--input-link",  "-L", "Set input link, defaults to <!--PLATE-->."},
 	[json_file]   = {"--json-file",   "-J", "Enter json data as a file."},
@@ -68,13 +68,13 @@ plib_setup (int argc, char *argv[])
 	
 	// Enable value parsing on some 
 	// arguments
-	plib_ForEach (template, json_index+1, pl)
+	plib_ForEach (template_string, json_index+1, pl)
 		plib_ToggleProperty (plib_Arg, PLIB_TAKESVALUE);
 	
 
 	// Set arguments template through to 
 	// input_file as required
-	plib_ForEach (template,input_link+1, pl)
+	plib_ForEach (template_string, input_file+1, pl)
 		plib_ToggleProperty (plib_Arg, PLIB_REQUIRED);
 
 	// Debug lines, prints flag name and its 

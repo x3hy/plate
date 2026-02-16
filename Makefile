@@ -12,24 +12,22 @@ plate.o: plate.c
 
 .ONESHELL:
 plate: plate.o
-	@if command -v "$(CC)" >/dev/null 2>&1; then
+	if command -v "$(CC)" >/dev/null 2>&1; then
 		$(CC) $(CFLAGS) $^ -o $@
-		@if [  $$? -eq 0 ];then 
-			echo "Built $@ sucessfully"
+		if [  $$? -eq 0 ];then 
+			@echo "Built $@ sucessfully"
 			exit 0
-		@else
+		else
 			@echo "Something went wrong."
 			exit 1
-		@fi
-	@else
+		fi
+	else
 		@echo "$(CC) not available"
 		exit 1
-	@fi
-
+	fi
 else
 plate:
-	@echo "Unsupported platform $(OS)"
-
+	echo "Unsupported platform $(OS)"
 endif
 
 # Remove bins
@@ -37,10 +35,7 @@ clean:
 	rm -f plate
 	rm -f plate.o
 
-run: plate
-	@echo
-	./plate
+test: plate
+	./plate -t='<span><!--$$name_l--></span>' -i="test.html" --json-file="data.json"
 
-update:
-	git pull
-.PHONY: plate run
+.PHONY: plate run test

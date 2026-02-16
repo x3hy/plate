@@ -22,7 +22,7 @@
  * SOFTWARE.
  **/
 
-/*
+/**
  * plate is a basic tem(plate) generator for mainly HTML but can be used for any 
  * filetype. PLATE works by reading a file line by line until it reaches a 
  * certain trigger (called a input link) where it will then load data from a json
@@ -51,6 +51,9 @@
 
 
 #include "src/arg.c"
+#include "src/json.c"
+#include "src/remote/cJSON/cJSON.h"
+#include "src/remote/plib6.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -59,6 +62,7 @@
 //#include "remote/cJSON/cJSON.c"
 
 #define BUF_SIZE 128
+char * generate (cJSON *, char *);
 
 int 
 main (int argc, char *argv[])
@@ -76,7 +80,6 @@ main (int argc, char *argv[])
 		if (ret == 1) return 0;
 		else return ret;
 	  }
-
 
 	// Get the input file path 
 	// from arguments.
@@ -96,9 +99,34 @@ main (int argc, char *argv[])
 
 	// location within the json.
 	const char *dat_loc  = plib_SArgValue (pl[json_path], 0);
-	
+
 	// Load json file
-	//cJSON *json = load_json_file (dat_path, dat_loc)
+	cJSON *json;
+	if (plib_SArgRun(pl[json_file]))
+	  {
+		json = load_json_file (dat_path);
+		// Load json file
+		if (json == NULL)
+		  {
+	  		fprintf(stderr, "An error occured while trying to open the json file\n");
+			return -1;
+		  }
+		// json file loaded successfully.
+	  }
+	else
+	  {
+		// Load json string 
+	  	json = cJSON_Parse (plib_SArgValue(pl[json_string], 0));
+		if (!json)
+		  {
+		  	const char *err = cJSON_GetErrorPtr ();
+			if (err)
+				fprintf (stderr, "Failed to parse json: %s\n", err);
+
+			return -1;
+		  }
+		// Json string loaded successfully
+	  }
 
 	// Create buffer for lines in input file
 	char *line_buf = malloc (BUF_SIZE * sizeof(char));
@@ -109,19 +137,41 @@ main (int argc, char *argv[])
 		return -1;
 	  }
 
+	// get template as string
+	char *template = plib_SArgGetFirstValue(pl[template_string]);
+
+	// Get the suffix as a string
+	char *suffix_str;
+	if (plib_SArgRun(pl[suf]))
+		suffix_str = strdup(plib_SArgValue(pl[suf], 0));
+	else suffix_str = strdup("-->");
+
+	// get the prefix as a string
+	char *prefix_str;
+	if (plib_SArgRun(pl[pre]))
+		prefix_str = strdup (plib_SArgValue(pl[pre], 0));
+	else prefix_str = strdup ("<!--$");
+
 	// Read input file line by line
 	while (fgets(line_buf, BUF_SIZE, fp))
 	  {
 		const char *input_link_string = plib_SArgValue (pl[input_link], 0);
-		const char *template_str = plib_SArgValue (pl[template], 0);
-
 		if (strstr (line_buf, input_link_string))
 		  {		
 			// Detected the input link
-			/*
-			 * char * template = gen_template (json, template_str)
-			 * */
-
+			/*if (cJSON_IsArray(json))
+			  {
+				int item_count = 0;
+				cJSON *item = NULL;
+			  	cJSON_ArrayForEach(item, json)
+				  {
+				  }
+			  } else {*/
+				// causes segfault for some reason	
+				char *formatted_template = gen_template(json, template, suffix_str, suffix_str, '$');
+				printf("%s\n", formatted_template);
+			  //}
+			return 0;
 		  }
 	  }
 
