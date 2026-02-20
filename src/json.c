@@ -94,29 +94,30 @@ static cJSON *
 load_json_file (const char *path)
 { if (!path) return NULL;
 	FILE *fp = fopen (path, "r");
-	cJSON *out;
-
 	if (!fp) return NULL;
 
-	fseek (fp, 0L, SEEK_END);
-	const int fp_s = ftell(fp);
-	fseek (fp, 0L, SEEK_SET);
+	fseek (fp, 0, SEEK_END);
+	int fp_s = ftell(fp);
+	fseek (fp, 0, SEEK_SET);
 
 	char *buf = (char *) malloc (fp_s);
 	if (!buf)
 		return NULL;
 
-	const int buf_l = fread (buf, 1, fp_s, fp);
+	fread (buf, 1, fp_s, fp);
+	fclose (fp);
 
-	out = cJSON_Parse (buf);
+	printf("%s\n", buf);
+	cJSON *out = cJSON_Parse (buf);
 	if (!out)
 	  {
 		const char *err = cJSON_GetErrorPtr ();
 		if (err != NULL)
 		  	fprintf (stderr, "Failed to parse json: %s\n", err);
+		free(buf);
+		return NULL;
 	  }
 
-	fclose (fp);
 	free (buf);
 	return out;
 }
@@ -173,6 +174,7 @@ replace_word(char *orig, char *rep, char *with)
 static int
 get_json_value(cJSON *json, char *search, char **ptr)
 {
+	/*
 	cJSON *value_json = cJSON_GetObjectItemCaseSensitive(json, search);
 	printf ("value: %s\n", value_json->valuestring);
 	return 0;
@@ -182,6 +184,9 @@ get_json_value(cJSON *json, char *search, char **ptr)
 		if (!*ptr) return -1;
 	  }
 	return 0;
+	*/
+	*ptr = strdup("test123");
+	return 0;
 }
 
 // generate a template based off of its json values.
@@ -189,27 +194,28 @@ static char *
 gen_template (cJSON *json, const char *template_in, const char *pre, const char *suf, const char pre_char)
 {
 	char delim_char[1];
-	delim_char[0] = pre[0]; // char to search for
 	char *template_local = strdup(template_in);
 	char *template_out = (char *)malloc (strlen (template_in) + 1);
-	sprintf (template_out, "%s", template_in);
 	char* tok = strtok (template_local, delim_char);
+	sprintf (template_out, "%s", template_in);
+	delim_char[0] = pre[0]; // char to search for
 
 	while (tok != NULL)
 	  {
 		int skip = 0;
+		char *edit = strdup(tok);
 		
 		// check the tok matches the prefix pattern
 		const int delim_pre_s = strlen (pre);
 		if (delim_pre_s > 0)
 			for (int i = 0; i < delim_pre_s-1; i++)
 			  {
-				if (tok[0] != pre[i+1])
+				if (edit[0] != pre[i+1])
 				  {  
 					skip=1;
 					break;
 				  }
-				memmove (tok, tok + 1, strlen (tok + 1) + 1);
+				memmove (edit, edit + 1, strlen (edit + 1) + 1);
 			  }
 
 		// check the tok matches the suffix pattern
@@ -217,30 +223,30 @@ gen_template (cJSON *json, const char *template_in, const char *pre, const char 
 		if (delim_suf_s > 0)
 			for (int i = delim_suf_s; 0 < i; i--)
 			  {
-				if (tok[strlen (tok)-1] != suf[i-1])
+				if (edit[strlen (edit)-1] != suf[i-1])
 				  {
 					skip=1;
 					break;
 				  }
-				tok[strlen(tok)-1] = '\0';
+				edit[strlen(edit)-1] = '\0';
 			  }
 
 		// skip if tok isent a match
 		if (!skip)
 		  {
-			if (tok[0] == pre_char)
+			if (edit[0] == pre_char)
 			  {
-				memmove (tok, tok + 1, strlen (tok + 1) + 1);
+				memmove (edit, edit + 1, strlen (edit + 1) + 1);
 	
-				char full_tag[strlen (suf) + strlen (pre) + strlen (tok) + 1];
-				sprintf(full_tag, "%s%c%s%s", pre, pre_char, tok, suf);
+				char full_tag[strlen (suf) + strlen (pre) + strlen (edit) + 1];
+				sprintf(full_tag, "%s%c%s%s", pre, pre_char, edit, suf);
 				
 				// get value in json
 				char *value;
-				if (get_json_value (json, tok, &value))
+				if (get_json_value (json, edit, &value))
 				  {
 					// couldent get the value
-					free (tok);
+					free (edit);
 					return NULL;
 				  }
 		
@@ -251,14 +257,15 @@ gen_template (cJSON *json, const char *template_in, const char *pre, const char 
 				if (!template_out)
 				  {
 					// template failed
-					free (tok);
+					free (edit);
 					return NULL;
 				  }
 			  }
 		  }
 		tok = strtok (NULL, delim_char);
+		free (edit);
 	  }
-	free (tok);
+	free(tok);
 	return template_out;
 }
 #endif

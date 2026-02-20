@@ -1,14 +1,14 @@
 CC             := cc
 OS             := $(shell uname -s)
 VERSION_MIN    := $(shell git rev-list --count --all)
-CFLAGS         := -O3 -DPLATE_V=\"1.0.$(VERSION_MIN)\" 
+CFLAGS         := -DPLATE_V=\"1.0.$(VERSION_MIN)\" 
 CFLAGS_RELEASE := -O3
 CFLAGS_DEBUG   := -g -fsanitize=address -fsanitize=undefined -O0
 
 all: clean plate
 
 # Debug
-ifndef MAKE_RELEASE
+ifndef RELEASE
 CFLAGS := $(CFLAGS_BASE) $(CFLAGS_DEBUG)
 else
 CFLAGS := $(CFLAGS_BASE) $(CFLAGS_RELEASE)
@@ -25,6 +25,7 @@ plate: plate.o
 		# Debug options
 		$(CC) $(CFLAGS) $^ -o $@
 		if [  $$? -eq 0 ];then 
+			@echo "--------------------"
 			@echo "Built $@ sucessfully"
 			exit 0
 		else
@@ -47,6 +48,6 @@ clean:
 
 # Basic test
 test: plate
-	./plate -t='<span><!--$$name_l--></span>' -i="src/static/test.html" --json-string="$(src/static/data.json)"
+	./plate -t='<span><!--$$name_l--></span>' -i="src/static/test.html" --json-file="src/static/data.json"
 
 .PHONY: plate run test

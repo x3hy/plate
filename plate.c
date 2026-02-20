@@ -47,9 +47,6 @@
  * write error checker for json values (in template generator)
  **/
 
-
-
-
 #include "src/arg.c"
 #include "src/json.c"
 #include "src/remote/cJSON/cJSON.h"
@@ -102,31 +99,29 @@ main (int argc, char *argv[])
 
 	// Load json file
 	cJSON *json;
-	if (plib_SArgRun(pl[(int)json_file]))
-	  {
-		json = load_json_file (dat_path);
+	
+	if (plib_SArgRun(pl[(int)json_file])){
 		// Load json file
-		if (json == NULL)
-		  {
-	  		fprintf(stderr, "An error occured while trying to open the json file\n");
-			return -1;
-		  }
-		// json file loaded successfully.
-	  }
-	else
-	  {
+		json = load_json_file (dat_path);
+	} else
 		// Load json string 
 	  	json = cJSON_Parse (plib_SArgValue(pl[(int)json_string], 0));
-		if (!json)
-		  {
-		  	const char *err = cJSON_GetErrorPtr ();
-			if (err)
-				fprintf (stderr, "Failed to parse json: %s\n", err);
 
-			return -1;
+
+	// Handle error
+	if (!json)
+	  {
+		if (plib_SArgRun(pl[(int)json_string]))
+		  {
+			const char *err = cJSON_GetErrorPtr ();
+			fprintf (stderr, "Failed to parse json");
+			if (err)
+				fprintf (stderr, ": %s\n", err);
 		  }
-		// Json string loaded successfully
+		else fprintf (stderr, "\n");
+		return -1;
 	  }
+
 
 	// Create buffer for lines in input file
 	char *line_buf = malloc (BUF_SIZE * sizeof(char));
@@ -151,22 +146,28 @@ main (int argc, char *argv[])
 	if (plib_SArgRun(pl[pre]))
 		prefix_str = strdup (plib_SArgValue(pl[(int)pre], 0));
 	else prefix_str = strdup ("<!--$");
+	
+	const char *input_link_string;
+	if (plib_SArgRun(pl[input_link]))
+		input_link_string = strdup (plib_SArgValue (pl[(int)input_link], 0));
+	else input_link_string = strdup ("<!--!PLATE-->"); 
+	
 
 	// Read input file line by line
-	while (fgets(line_buf, BUF_SIZE, fp))
+	while (fgets(line_buf, 512, fp))
 	  {
-		const char *input_link_string = plib_SArgValue (pl[(int)input_link], 0);
+		line_buf[strlen(line_buf)-1] = '\0';
 		if (strstr (line_buf, input_link_string))
 		  {		
 			// Detected the input link
-			/*if (cJSON_IsArray(json))
+			if (cJSON_IsArray(json))
 			  {
 				int item_count = 0;
 				cJSON *item = NULL;
 			  	cJSON_ArrayForEach(item, json)
 				  {
 				  }
-			  } else {*/
+			  } else {
 				// causes segfault for some reason	
 				char *formatted_template = gen_template(json, template, suffix_str, suffix_str, '$');
 				if (!formatted_template)
@@ -175,12 +176,13 @@ main (int argc, char *argv[])
 					return 0;
 				  }
 				printf("%s\n", formatted_template);
-			  //}
-			return 0;
+			}
+			puts("found\n");
 		  }
+		printf( "%s\n", line_buf);
 	  }
 
-	free (prefix);
-	free (suffix);
+//	free (prefix);
+//	free (suffix);
 	return 0;
 }
