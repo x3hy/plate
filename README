@@ -1,13 +1,7 @@
-Plate
+Plate 1.0.0
 -------------------------
-
-THIS PROJECT IS A WORK IN PROGRESS!!! DO NOT EXPECT IT TO BE PERFECT
--------------------------
-
 Plate is a basic tem(plate) generator for JSON. plate takes in a template and some JSON and will replace special triggers in the template with the values in the json. Plate can iterate through arrays of data and output templates of each part of the data. Plate also takes an input file where you can specifiy a "input trigger" that the template(s) will be written too.
-
 Plate was designed for generating static websites using data from json files. An example usecase would be a portfoio website that uses the GitHub api to populate its pages.
-
 -------------------------
 
 Options: 
@@ -22,30 +16,9 @@ Options:
 --json-path   | -p | Set the path for json data, defaults to.
 --help        | -h | Display this dialog.
 --version     | -v | Show version number.
-------------------------
-
-More help:
-
---json-path: This flag can be given a "python style" syntax to reference a particular part of the json, if --json-path was given the value projects.pinned it would look for the data here:
-{
-	"projects": {
-		"pinned": {
-			// here
-		}
-	}
-}
-
-If the given path is to an array plate will iterate through all of the items in the array and generate a template for each. If you do not want this to happen then specifiy an index at the end of the path like projects.pinned[3] which will ONLY generate a template for the 4th item in the projects.pinned array.
-
---template: I have yet to incorperate a template-file option so until then use cat to output the file if youre using a template file:
-plate --template="$(cat mytemplate.htm)"
-------------------------
-
-Licencing:
-Please read plate.c for the license terms.
 
 -----------------------
-BUILDING:
+Building:
 
 If you want to simply build the program you can do the following:
 make
@@ -58,4 +31,5 @@ make MAKE_RELEASE=1
 if you are debugging this program and you see a weird error code changes are its just the builtin debug output messing it up, you can simply use the following to test the program and disable the debug
 make MAKE_RELEASE=1 test
 
+-----------------------
 Read the Makefile file for more info.

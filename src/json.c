@@ -107,7 +107,6 @@ load_json_file (const char *path)
 	fread (buf, 1, fp_s, fp);
 	fclose (fp);
 
-	printf("%s\n", buf);
 	cJSON *out = cJSON_Parse (buf);
 	if (!out)
 	  {
@@ -251,6 +250,7 @@ gen_template (cJSON *json, const char *template_in, const char *pre, const char 
 				  }
 		
 				// apply string replace
+				printf ("swapping -> %s\n", edit); 
 				template_out = replace_word (template_out, full_tag, value);
 				free (value);
 

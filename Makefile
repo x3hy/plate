@@ -3,7 +3,7 @@ OS             := $(shell uname -s)
 VERSION_MIN    := $(shell git rev-list --count --all)
 CFLAGS         := -DPLATE_V=\"1.0.$(VERSION_MIN)\" 
 CFLAGS_RELEASE := -O3
-CFLAGS_DEBUG   := -g -fsanitize=address -fsanitize=undefined -O0
+CFLAGS_DEBUG   := -g -fsanitize=address -fsanitize=undefined -O0 -Wall -Wextra
 
 all: clean plate
 

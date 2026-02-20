@@ -133,7 +133,7 @@ main (int argc, char *argv[])
 	  }
 
 	// get template as string
-	char *template = plib_SArgGetFirstValue(pl[(int)template_string]);
+	char *template = plib_SArgValue(pl[(int)template_string], 0);
 
 	// Get the suffix as a string
 	char *suffix_str;
@@ -154,11 +154,12 @@ main (int argc, char *argv[])
 	
 
 	// Read input file line by line
-	while (fgets(line_buf, 512, fp))
+	while (fgets(line_buf, BUF_SIZE, fp))
 	  {
 		line_buf[strlen(line_buf)-1] = '\0';
 		if (strstr (line_buf, input_link_string))
 		  {		
+			puts("found\n");
 			// Detected the input link
 			if (cJSON_IsArray(json))
 			  {
@@ -168,21 +169,19 @@ main (int argc, char *argv[])
 				  {
 				  }
 			  } else {
-				// causes segfault for some reason	
-				char *formatted_template = gen_template(json, template, suffix_str, suffix_str, '$');
+				char *formatted_template = gen_template(json, template, prefix_str, suffix_str, '$');
 				if (!formatted_template)
 				  {
 				  	fprintf (stderr, "could not generate template, maybe your values are wrong..\n");
 					return 0;
 				  }
-				printf("%s\n", formatted_template);
+				printf("gen-> %s\n", formatted_template);
 			}
-			puts("found\n");
 		  }
-		printf( "%s\n", line_buf);
+		else printf( "%s\n", line_buf);
 	  }
-
-//	free (prefix);
-//	free (suffix);
+	free (input_link_string);
+	free (prefix);
+	free (suffix);
 	return 0;
 }
