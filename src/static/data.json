@@ -1,5 +1,12 @@
 {
-	"name_l" : "Cool",
-	"name_s" : "Person",
-	"age": "312,312,312"
+	"data" : [ 
+		{
+			"name_l" : "Cool",
+			"name_s" : "Person"
+		},
+		{
+			"name_l" : "fat",
+			"name_s" : "cat"
+		}	
+	]
 }

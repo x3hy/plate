@@ -48,13 +48,14 @@ static struct plib_Argument pl[end_arg] = {
 	[json_path]   = {"--json-path",   "-p", "Set the path for json data, defaults to."},
 	[json_index]  = {"--json-index",  "-I", "Set index of array at end of json path."},
 	[help]        = {"--help",        "-h", "Display this dialog."},
-	[version]     = {"--version",     "-v", "Show version number."}
+	[version]     = {"--version",     "-v", "Show version number."},
 };
 
-void print_byte_as_bits(char val) {
-  for (int i = 7; 0 <= i; i--)
-    putchar ((val & (1 << i)) ? '1' : '0');
-  putchar ('\n');
+void print_byte_as_bits(char val)
+{
+	for (int i = 7; 0 <= i; i--)
+		putchar ((val & (1 << i)) ? '1' : '0');
+	putchar ('\n');
 }
 
 static int

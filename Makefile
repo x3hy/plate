@@ -48,6 +48,6 @@ clean:
 
 # Basic test
 test: plate
-	./plate -t='<span><!--$$name_l--></span>' -i="src/static/test.html" --json-file="src/static/data.json"
+	./plate -t='<span>Hello: <!--$$name_l--> <!--$$name_s--></span>' -i="src/static/test.html" --json-file="src/static/data.json" -p="data"
 
 .PHONY: plate run test

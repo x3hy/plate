@@ -78,24 +78,22 @@ main (int argc, char *argv[])
 		else return ret;
 	  }
 
-	// Get the input file path 
+	// Get the input file path
 	// from arguments.
-	const char * input_file_path = 
-		strdup (plib_SArgGetFirstValue(pl[(int)input_file]));
+	char* input_file_path = 
+		(char *)strdup (plib_SArgGetFirstValue(pl[(int)input_file]));
 
 	// Open file
 	FILE *fp = fopen (input_file_path, "r");
 	if (!fp)
 	  {
 	  	fprintf (stderr,"Failed to open input file \"%s\".\n", input_file_path);
+		free(input_file_path);
 		return -1;
 	  }
 
 	// Dat_path is the file location of the json data.
-	const char *dat_path = plib_SArgValue (pl[(int)json_file], 0);
-
-	// location within the json.
-	const char *dat_loc  = plib_SArgValue (pl[(int)json_path], 0);
+	char *dat_path = plib_SArgValue (pl[(int)json_file], 0);
 
 	// Load json file
 	cJSON *json;
@@ -107,6 +105,15 @@ main (int argc, char *argv[])
 		// Load json string 
 	  	json = cJSON_Parse (plib_SArgValue(pl[(int)json_string], 0));
 
+	if (plib_SArgRun(pl[json_path]))
+	 {
+		char *dat_loc  = plib_SArgValue (pl[json_path], 0);
+		json = json_get_path(json, dat_loc);
+		if (!json){
+			fprintf(stderr, "Error loading json data at path: %s\n", dat_loc);
+			return -1;
+		}
+	  }	
 
 	// Handle error
 	if (!json)
@@ -145,13 +152,20 @@ main (int argc, char *argv[])
 	char *prefix_str;
 	if (plib_SArgRun(pl[pre]))
 		prefix_str = strdup (plib_SArgValue(pl[(int)pre], 0));
-	else prefix_str = strdup ("<!--$");
+	else prefix_str = strdup ("<!--");
 	
-	const char *input_link_string;
+	char *input_link_string;
 	if (plib_SArgRun(pl[input_link]))
 		input_link_string = strdup (plib_SArgValue (pl[(int)input_link], 0));
-	else input_link_string = strdup ("<!--!PLATE-->"); 
-	
+	else input_link_string = (char *)strdup ("<!--!PLATE-->");
+
+	int json_idx = -1;
+	if (plib_SArgRun(pl[json_index]))
+	  {
+		char *str_json_index = (char *)strdup (plib_SArgValue(pl[json_index], 0));
+		json_idx = atoi(str_json_index);
+		free(str_json_index);
+	  }
 
 	// Read input file line by line
 	while (fgets(line_buf, BUF_SIZE, fp))
@@ -159,7 +173,6 @@ main (int argc, char *argv[])
 		line_buf[strlen(line_buf)-1] = '\0';
 		if (strstr (line_buf, input_link_string))
 		  {		
-			puts("found\n");
 			// Detected the input link
 			if (cJSON_IsArray(json))
 			  {
@@ -167,6 +180,22 @@ main (int argc, char *argv[])
 				cJSON *item = NULL;
 			  	cJSON_ArrayForEach(item, json)
 				  {
+					if (json_idx != -1 && json_idx != item_count)
+					  {
+						item_count++;
+						continue;	
+					  }
+
+					char *formatted_template = gen_template(item, template, prefix_str, suffix_str, '$');
+					if (!formatted_template)
+					  {
+					  	fprintf (stderr, "could not generate template, maybe your values are wrong..\n");
+						return 0;
+					  }
+					puts(formatted_template);
+					free(formatted_template);
+
+					item_count++;
 				  }
 			  } else {
 				char *formatted_template = gen_template(json, template, prefix_str, suffix_str, '$');
@@ -175,7 +204,8 @@ main (int argc, char *argv[])
 				  	fprintf (stderr, "could not generate template, maybe your values are wrong..\n");
 					return 0;
 				  }
-				printf("gen-> %s\n", formatted_template);
+				puts(formatted_template);
+				free(formatted_template);
 			}
 		  }
 		else printf( "%s\n", line_buf);
