@@ -9,7 +9,7 @@ CFLAGS_RELEASE := -O3
 CFLAGS_DEBUG   := -g -fsanitize=address -fsanitize=undefined -O0 -Wall -Wextra
 PREFIX         := /usr
 
-all: clean plate update-version
+all: clean plate
 
 # Debug
 ifndef RELEASE
@@ -36,6 +36,7 @@ plate: plate.o
 		if [  $$? -eq 0 ];then 
 			@echo "--------------------"
 			@echo "Built $@ $(VERSION) sucessfully"
+			make update-version
 			exit 0
 		else
 			@echo "Something went wrong."

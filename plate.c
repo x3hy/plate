@@ -211,7 +211,7 @@ main (int argc, char *argv[])
 				free(formatted_template);
 			}
 		  }
-		else printf( "%s", line_buf);
+		//else printf( "%s", line_buf);
 	  }
 	free (input_link_string);
 	free (prefix);

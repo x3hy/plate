@@ -187,9 +187,10 @@ gen_template (cJSON *json, const char *template_in, const char *pre, const char 
     while (tok != NULL)
     {
         int skip = 0;
-        char *edit = strdup(tok);
-		if (edit[strlen(edit)-1] == ' ')
+        char *edit = (char *)strdup(tok);
+		if (edit[strlen(edit)-1] == ' ' || edit[strlen(edit)-1] == '"')
 			edit[strlen(edit)-1] = '\0';
+		printf("\"%s\"\n", edit);
 
         if (!edit)
         {
@@ -208,24 +209,28 @@ gen_template (cJSON *json, const char *template_in, const char *pre, const char 
                     skip = 1;
                     break;
                 }
+				printf ("pre: %c - %c\n", edit[0], pre[i+1]);
                 memmove (edit, edit + 1, strlen (edit + 1) + 1);
             }
         }
 
         // check the tok matches the suffix pattern
         const int delim_suf_s = strlen (suf);
-        if (delim_suf_s > 0 && !skip)
-        {
-            for (int i = delim_suf_s; i > 0; i--)
-            {
-                if (edit[strlen (edit)-1] != suf[i-1])
-                {
-                    skip = 1;
-                    break;
-                }
-                edit[strlen(edit)-1] = '\0';
-            }
-        }
+		int matches = 0;
+		if (delim_suf_s > 0)
+		{
+			for(int i = 0; i < strlen(edit); i++)
+			{
+				printf ("suf %d %c - %c\n",strlen(edit), edit[strlen(edit)-1], suf[delim_suf_s-1-matches]);
+				if (edit[strlen(edit)-1] == suf[delim_suf_s-1-matches])
+					matches++;
+				edit[strlen(edit)-1] = '\0';
+				if (matches == delim_suf_s)
+					break;
+			}
+		}
+
+		printf("%d - %s\n", skip, edit);
 
         // skip if tok isnt a match
         if (!skip)
@@ -259,7 +264,8 @@ gen_template (cJSON *json, const char *template_in, const char *pre, const char 
                     }
                 }
             }
-        }
+        } else 
+			printf ("skipping: %s\n", edit);
 
         tok = strtok (NULL, delim_char);
         free (edit);
