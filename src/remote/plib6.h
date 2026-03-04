@@ -189,9 +189,13 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 			split = 0;
 
 		// locate occurances of split_char in argument
-		while (v[out->index][arg_s++])
+		while (v[out->index][arg_s])
+		  {
 			if (v[out->index][arg_s] == split_char)
-				split = arg_s;
+				if (split == 0)
+					split = arg_s;
+			arg_s++;
+		  }
 
 		// Separate key and value from argument string
 		char key[arg_s-split];
@@ -200,14 +204,14 @@ plib_Parse (int c, char *v[], struct plib_Argument *ar, char split_char)
 			if (i <= (split ? split : arg_s))
 			  {
 				key[i] = v[out->index][i];
-				if (split && i == split) 
+				if (split && i == split)
 					key[i] = '\0';
 				
-				else if (i == arg_s) 
+				else if (i == arg_s)
 					v[out->index][0] = '\0';
 			  }
 			
-			if (split) 
+			if (split)
 				v[out->index][i] = v[out->index][i+split+1];
 		}
 

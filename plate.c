@@ -58,6 +58,10 @@
 //#include "remote/cJSON/cJSON.h"
 //#include "remote/cJSON/cJSON.c"
 
+#ifndef PLATE_VERSION
+#define PLATE_VERSION "No Version Given"
+#endif
+
 #define BUF_SIZE 128
 char * generate (cJSON *, char *);
 
@@ -67,7 +71,7 @@ main (int argc, char *argv[])
 
 	// handle arguments, read arg.c for the 
 	// information here.
-	const int ret = plib_setup (argc, argv);
+	const int ret = plib_setup (argc, argv, PLATE_VERSION );
 	if (ret != 0)
 	  {
 
@@ -170,7 +174,6 @@ main (int argc, char *argv[])
 	// Read input file line by line
 	while (fgets(line_buf, BUF_SIZE, fp))
 	  {
-		line_buf[strlen(line_buf)-1] = '\0';
 		if (strstr (line_buf, input_link_string))
 		  {		
 			// Detected the input link
@@ -208,7 +211,7 @@ main (int argc, char *argv[])
 				free(formatted_template);
 			}
 		  }
-		else printf( "%s\n", line_buf);
+		else printf( "%s", line_buf);
 	  }
 	free (input_link_string);
 	free (prefix);

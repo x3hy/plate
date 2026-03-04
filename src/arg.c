@@ -31,7 +31,7 @@ enum {
 	json_path,
 	json_index,
 	help,
-	version,
+	version_arg,
 	end_arg
 };
 
@@ -48,7 +48,7 @@ static struct plib_Argument pl[end_arg] = {
 	[json_path]   = {"--json-path",   "-p", "Set the path for json data, defaults to."},
 	[json_index]  = {"--json-index",  "-I", "Set index of array at end of json path."},
 	[help]        = {"--help",        "-h", "Display this dialog."},
-	[version]     = {"--version",     "-v", "Show version number."},
+	[version_arg]     = {"--version",     "-v", "Show version number."},
 };
 
 void print_byte_as_bits(char val)
@@ -59,7 +59,7 @@ void print_byte_as_bits(char val)
 }
 
 static int
-plib_setup (int argc, char *argv[])
+plib_setup (int argc, char *argv[], char * version)
 {
 	// Initialize arguments and
 	// enable all.
@@ -119,13 +119,9 @@ plib_setup (int argc, char *argv[])
 		return 1;
 	  }
 
-	if (plib_SArgRun (pl[version]))
+	if (plib_SArgRun (pl[version_arg]))
 	  {
-		#ifdef PLATE_V
-		puts (PLATE_V);
-		#else 
-		puts ("No version given\n");
-		#endif
+		puts (version);
 		return 1;
 	  }
 
