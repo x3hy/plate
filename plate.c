@@ -62,6 +62,14 @@
 #define PLATE_VERSION "No Version Given"
 #endif
 
+// load a value from plib if it exists, if it does not exist then use a provided
+// default value.
+#define plib_default(prop, ar, idx, def) \
+	(plib_SArgRun(ar[prop])) \
+		? (char *)strdup(plib_SArgValue(ar[prop], idx)) \
+		: (char *)strdup(def);
+
+
 #define BUF_SIZE 128
 char * generate (cJSON *, char *);
 
@@ -85,7 +93,7 @@ main (int argc, char *argv[])
 	// Get the input file path
 	// from arguments.
 	char* input_file_path = 
-		(char *)strdup (plib_SArgGetFirstValue(pl[(int)input_file]));
+		(char *)strdup (plib_SArgGetFirstValue(pl[input_file]));
 
 	// Open file
 	FILE *fp = fopen (input_file_path, "r");
@@ -143,25 +151,12 @@ main (int argc, char *argv[])
 		return -1;
 	  }
 
-	// get template as string
-	char *template = plib_SArgValue(pl[(int)template_string], 0);
-
-	// Get the suffix as a string
-	char *suffix_str;
-	if (plib_SArgRun(pl[(int)suf]))
-		suffix_str = strdup(plib_SArgValue(pl[(int)suf], 0));
-	else suffix_str = strdup("-->");
-
-	// get the prefix as a string
-	char *prefix_str;
-	if (plib_SArgRun(pl[pre]))
-		prefix_str = strdup (plib_SArgValue(pl[(int)pre], 0));
-	else prefix_str = strdup ("<!--");
-	
-	char *input_link_string;
-	if (plib_SArgRun(pl[input_link]))
-		input_link_string = strdup (plib_SArgValue (pl[(int)input_link], 0));
-	else input_link_string = (char *)strdup ("<!--!PLATE-->");
+	// fetch values
+	char *template_str = plib_SArgValue(pl[(int)template_string], 0);
+	char *suffix_str = plib_default(suf, pl, 0, "-->");
+	char *prefix_str = plib_default(pre, pl, 0, "<--$");
+	char *input_link_string = plib_default(input_link, pl, 0, "<!--!PLATE-->");
+	FILE *out_file_fp = stdout;
 
 	int json_idx = -1;
 	if (plib_SArgRun(pl[json_index]))
@@ -174,45 +169,31 @@ main (int argc, char *argv[])
 	// Read input file line by line
 	while (fgets(line_buf, BUF_SIZE, fp))
 	  {
-		if (strstr (line_buf, input_link_string))
-		  {		
-			// Detected the input link
-			if (cJSON_IsArray(json))
-			  {
-				int item_count = 0;
-				cJSON *item = NULL;
-			  	cJSON_ArrayForEach(item, json)
-				  {
-					if (json_idx != -1 && json_idx != item_count)
-					  {
-						item_count++;
-						continue;	
-					  }
-
-					char *formatted_template = gen_template(item, template, prefix_str, suffix_str, '$');
-					if (!formatted_template)
-					  {
-					  	fprintf (stderr, "could not generate template, maybe your values are wrong..\n");
-						return 0;
-					  }
-					puts(formatted_template);
-					free(formatted_template);
-
-					item_count++;
-				  }
-			  } else {
-				char *formatted_template = gen_template(json, template, prefix_str, suffix_str, '$');
-				if (!formatted_template)
-				  {
-				  	fprintf (stderr, "could not generate template, maybe your values are wrong..\n");
-					return 0;
-				  }
-				puts(formatted_template);
-				free(formatted_template);
-			}
+		if (!strstr (line_buf, input_link_string))
+		  {
+			fputs(line_buf, out_file_fp);
+			continue;
 		  }
-		//else printf( "%s", line_buf);
+
+		// Detected the input link
+		if (cJSON_IsArray(json))
+		  {
+			int item_count = 0;
+			cJSON *item = NULL;
+			cJSON_ArrayForEach(item, json)
+			  {
+				if (json_idx != -1 && json_idx != item_count)
+					goto premature;
+					
+				template(out_file_fp, template_str, prefix_str, suffix_str, '$', item);
+
+				premature:
+				item_count++;
+			  }
+		  }
+		else template (out_file_fp, template_str, prefix_str, suffix_str, '$', json);
 	  }
+
 	free (input_link_string);
 	free (prefix);
 	free (suffix);

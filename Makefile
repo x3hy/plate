@@ -5,7 +5,7 @@ COUNTER_FILE   := .version
 VERSION_MIN    := $(shell cat .version)
 VERSION        := 1.$(VERSION_MEAN).$(VERSION_MIN)
 CFLAGS         := -DPLATE_VERSION=\"$(VERSION)\"
-CFLAGS_RELEASE := -O3
+CFLAGS_RELEASE := -O3 -g
 CFLAGS_DEBUG   := -g -fsanitize=address -fsanitize=undefined -O0 -Wall -Wextra
 PREFIX         := /usr
 
