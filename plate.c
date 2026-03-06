@@ -58,84 +58,70 @@
 //#include "remote/cJSON/cJSON.h"
 //#include "remote/cJSON/cJSON.c"
 
-#ifndef PLATE_VERSION
-#define PLATE_VERSION "No Version Given"
+#define _STRINGIZE(x) #x
+#define STRINGIZE(x) _STRINGIZE(x)
+#ifdef PLATE_VERSION
+const char VERSION[] = STRINGIZE(PLATE_VERSION);
+#else
+#define VERSION "None"
 #endif
 
-// load a value from plib if it exists, if it does not exist then use a provided
+// Load a value from plib if it exists, if it does not exist then use a provided
 // default value.
 #define plib_default(prop, ar, idx, def) \
 	(plib_SArgRun(ar[prop])) \
 		? (char *)strdup(plib_SArgValue(ar[prop], idx)) \
-		: (char *)strdup(def);
+		: (char *)strdup(def)
 
+// If value is defined then free it if
+// not then do nothing..
+#define s_free(ptr) if (ptr) free (ptr)
 
 #define BUF_SIZE 128
-char * generate (cJSON *, char *);
 
-int 
+int
 main (int argc, char *argv[])
-{	
+{
+	const int ret = plib_setup (argc, argv, VERSION);
+	if (ret != 0) return (ret == 1) ? 0 : ret;
 
-	// handle arguments, read arg.c for the 
-	// information here.
-	const int ret = plib_setup (argc, argv, PLATE_VERSION );
-	if (ret != 0)
-	  {
-
-		// if plib_setup returns a 0 then
-		// continue in plate.c if not 
-		// handle each code like so.
-		if (ret == 1) return 0;
-		else return ret;
-	  }
-
-	// Get the input file path
-	// from arguments.
-	char* input_file_path = 
-		(char *)strdup (plib_SArgGetFirstValue(pl[input_file]));
-
-	// Open file
-	FILE *fp = fopen (input_file_path, "r");
-	if (!fp)
+	// Load input file
+	FILE *input_file_fp;
+	char* input_file_path = (char *)strdup (plib_SArgValue(pl[input_file], 0));
+	if (!(input_file_fp = fopen(input_file_path, "r")))
 	  {
 	  	fprintf (stderr,"Failed to open input file \"%s\".\n", input_file_path);
-		free(input_file_path);
-		return -1;
+		goto exit_main;
 	  }
 
 	// Dat_path is the file location of the json data.
-	char *dat_path = plib_SArgValue (pl[(int)json_file], 0);
+	char *dat_path = plib_SArgValue (pl[json_file], 0);
 
 	// Load json file
-	cJSON *json;
-	
-	if (plib_SArgRun(pl[(int)json_file])){
-		// Load json file
-		json = load_json_file (dat_path);
-	} else
-		// Load json string 
-	  	json = cJSON_Parse (plib_SArgValue(pl[(int)json_string], 0));
+	cJSON *json = (plib_SArgRun(pl[json_file]))
+		? load_json_file (dat_path)
+		: cJSON_Parse (plib_SArgValue(pl[json_string], 0));
 
+	// Load path within JSON file
 	if (plib_SArgRun(pl[json_path]))
 	 {
 		char *dat_loc  = plib_SArgValue (pl[json_path], 0);
 		json = json_get_path(json, dat_loc);
-		if (!json){
+		if (!json)
+		  {
 			fprintf(stderr, "Error loading json data at path: %s\n", dat_loc);
 			return -1;
-		}
+		  }
 	  }	
 
-	// Handle error
+	// Handle JSON errors
 	if (!json)
 	  {
-		if (plib_SArgRun(pl[(int)json_string]))
+		if (plib_SArgRun(pl[json_string]))
 		  {
 			const char *err = cJSON_GetErrorPtr ();
 			fprintf (stderr, "Failed to parse json");
-			if (err)
-				fprintf (stderr, ": %s\n", err);
+			if (err) fprintf (stderr, ": %s\n", err);
 		  }
 		else fprintf (stderr, "\n");
 		return -1;
@@ -143,59 +129,71 @@ main (int argc, char *argv[])
 
 
 	// Create buffer for lines in input file
-	char *line_buf = malloc (BUF_SIZE * sizeof(char));
-	if (!line_buf) 
+	char *line_buf = malloc (BUF_SIZE);
+	if (!line_buf)
 	  {
 		fprintf (stderr, "Failed to allocate memory.\n");
-		fclose (fp);
-		return -1;
+		goto exit_main;
 	  }
 
-	// fetch values
-	char *template_str = plib_SArgValue(pl[(int)template_string], 0);
+	// Load misc values
+	char *template_str = plib_SArgValue(pl[template_string], 0);
 	char *suffix_str = plib_default(suf, pl, 0, "-->");
-	char *prefix_str = plib_default(pre, pl, 0, "<--$");
+	char *prefix_str = plib_default(pre, pl, 0, "<!--$");
 	char *input_link_string = plib_default(input_link, pl, 0, "<!--!PLATE-->");
 	FILE *out_file_fp = stdout;
-
+	
+	// Load the JSON index value
+	// TODO: input validation and clean-up here
 	int json_idx = -1;
 	if (plib_SArgRun(pl[json_index]))
 	  {
-		char *str_json_index = (char *)strdup (plib_SArgValue(pl[json_index], 0));
-		json_idx = atoi(str_json_index);
-		free(str_json_index);
+		json_idx = atoi(plib_SArgValue(pl[json_index], 0));
+		
+		if (cJSON_GetArraySize(json) <= json_index)
+			json = cJSON_GetArrayItem(json, json_idx);
+
+		else
+		  {
+			fprintf(stderr, "Failed to fetch json index (%d).\n", json_index);
+			goto exit_main;
+		  }
 	  }
 
-	// Read input file line by line
-	while (fgets(line_buf, BUF_SIZE, fp))
+	// Print loop
+	while (fgets(line_buf, BUF_SIZE, input_file_fp))
 	  {
+		// If the current line doesn't contain the
+		// trigger then just print it and continue
+		// if it does contain the trigger then
+		// continue to printing the template.
 		if (!strstr (line_buf, input_link_string))
 		  {
 			fputs(line_buf, out_file_fp);
 			continue;
 		  }
 
-		// Detected the input link
+		// If the JSON given is
+		// an array then we
+		// iterate through each
+		// individual item in
+		// the data.
 		if (cJSON_IsArray(json))
 		  {
-			int item_count = 0;
-			cJSON *item = NULL;
+			cJSON *item;
 			cJSON_ArrayForEach(item, json)
-			  {
-				if (json_idx != -1 && json_idx != item_count)
-					goto premature;
-					
 				template(out_file_fp, template_str, prefix_str, suffix_str, '$', item);
-
-				premature:
-				item_count++;
-			  }
 		  }
+		
+		// If the data is not an array then simply print it out normally.
 		else template (out_file_fp, template_str, prefix_str, suffix_str, '$', json);
 	  }
 
-	free (input_link_string);
-	free (prefix);
-	free (suffix);
+exit_main:
+	s_free(line_buf);
+	s_free (input_link_string);
+	s_free (prefix_str);
+	s_free (suffix_str);
+	cJSON_Delete(json);
 	return 0;
 }

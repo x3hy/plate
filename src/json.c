@@ -164,6 +164,7 @@ int template(FILE *out, char *str, char *pre, char *suf, char ca, cJSON *json)
 	const int pre_s = strlen (pre);
 	int tok         = find_char_in_str(0, str, ca);
 	str = (char *)strdup (str);
+	/* printf("Using prefix: \"%s\"\nUsing suffix: \"%s\"\nUsing str: \"%s\"\nUsing ca: %c", pre, suf, str, ca); */
 	
 	for (;;)
 	  {
@@ -176,7 +177,7 @@ int template(FILE *out, char *str, char *pre, char *suf, char ca, cJSON *json)
 			  {
 				const char s1 = str[tok - i];
 				const char s2 = pre[pre_s - i - 1];
-				/* printf ("pre: %c - %c\n", s1, s2); */
+				/* printf ("pre: %c - %c (%d)\n", s1, s2, tok - i); */
 				if (s1 != s2) goto end;
 			  }
 		  }
@@ -199,17 +200,17 @@ int template(FILE *out, char *str, char *pre, char *suf, char ca, cJSON *json)
 		// Fetch value
 		char *value;
 		snprintyes(value, "%.*s",suf_tok - (tok+1), str+(tok + 1));
-		//print_json_prop(out, json, value);
-		free(value);
 
 		// print out this section of tok
 		fprintf(out, "%.*s",(tok - pre_s + 1), str);
-		fprintf(out, "test123");
+		
+		print_json_prop(out, json, value);
+		free(value);
 
 		// incriment tok and continue
 		end:
 		strcpy(str, str+suf_tok+suf_s);
-		tok = find_char_in_str (suf_tok+suf_s-tok, str, ca);
+		tok = find_char_in_str (0, str, ca);
 	  }
 
 	fprintf(out, "%s\n", str);

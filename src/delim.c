@@ -6,6 +6,7 @@
 // of the character at an index higher then the skip parameter.
 int find_char_in_str(int skip, char *str, char ch)
 {
+	if (!str) return -2;
 	for(int i = 0; i < strlen(str); i++)
 		if (str[i] == ch && i > skip)
 			return i;
@@ -25,6 +26,7 @@ int template(char *str, char *pre, char *suf, char ca, FILE *out)
 	const int suf_s = strlen (suf);
 	const int pre_s = strlen (pre);
 	int tok         = find_char_in_str(0, str, ca);
+
 	str = (char *)strdup (str);
 	
 	for (;;)
@@ -70,17 +72,18 @@ int template(char *str, char *pre, char *suf, char ca, FILE *out)
 		// incriment tok and continue
 		end:
 		strcpy(str, str+suf_tok+suf_s);
-		tok = find_char_in_str (suf_tok+suf_s-tok, str, ca);
+		tok = find_char_in_str (0, str, ca);
 	  }
 
 	fprintf(out, "%s\n", str);
+	free(str);
 	return 0;
 }
 
 
 
 int main (void){
-	char *temp= "<li href=\"<!--$TEST_VALUE-->\"><a><!--$2--></a> <!--$3--></li>";
+	char *temp= "<li href=\"<!--$LONGER_THAN_ONE_FILENAME-->\"><a><!--$2--></a> <!--$3--></li>";
 	template(temp, "<!--$", "-->", '$', stdout);
 	return 0;
 }
