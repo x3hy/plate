@@ -58,14 +58,6 @@
 //#include "remote/cJSON/cJSON.h"
 //#include "remote/cJSON/cJSON.c"
 
-#define _STRINGIZE(x) #x
-#define STRINGIZE(x) _STRINGIZE(x)
-#ifdef PLATE_VERSION
-const char VERSION[] = STRINGIZE(PLATE_VERSION);
-#else
-#define VERSION "None"
-#endif
-
 // Load a value from plib if it exists, if it does not exist then use a provided
 // default value.
 #define plib_default(prop, ar, idx, def) \
@@ -82,7 +74,7 @@ const char VERSION[] = STRINGIZE(PLATE_VERSION);
 int
 main (int argc, char *argv[])
 {
-	const int ret = plib_setup (argc, argv, VERSION);
+	const int ret = plib_setup (argc, argv);
 	if (ret != 0) return (ret == 1) ? 0 : ret;
 
 	// Load input file
@@ -142,6 +134,10 @@ main (int argc, char *argv[])
 	char *prefix_str = plib_default(pre, pl, 0, "<!--$");
 	char *input_link_string = plib_default(input_link, pl, 0, "<!--!PLATE-->");
 	FILE *out_file_fp = stdout;
+
+	// load file if possible
+	if (plib_SArgRun(pl[output]))
+		out_file_fp = fopen(plib_SArgValue(pl[output], 0), "w");
 	
 	// Load the JSON index value
 	// TODO: input validation and clean-up here

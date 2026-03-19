@@ -1,0 +1,16 @@
+have a function that will simply print the template given with its value.
+if the value is an array then print out the template for each item in the array.
+perhaps include a templating system where for each template given the depth is used and
+if lets say you gave two templates and then you provided data and the first set of data was non-recursive
+but the secondary part of the data WAS recursive then it would use the SECOND template, this would mean
+you'd need to provide an array or index array of where the function can get the templates from.
+
+Id like to have a basic IF ELSE language built into the program. eg something like this
+plate -c "
+IF (my_param) 1
+ELSE 2
+"
+
+I'd need to create some form of template management system that would let you define
+multiple templates with an incremental ID. This is easy to do with my argument parsing
+library PLIB.

@@ -59,7 +59,7 @@ void print_byte_as_bits(char val)
 }
 
 static int
-plib_setup (int argc, char *argv[], char * version)
+plib_setup (int argc, char *argv[])
 {
 	// Initialize arguments and
 	// enable all.
@@ -121,7 +121,7 @@ plib_setup (int argc, char *argv[], char * version)
 
 	if (plib_SArgRun (pl[version_arg]))
 	  {
-		puts (version);
+		printf("im not sure either");
 		return 1;
 	  }
 
@@ -181,6 +181,21 @@ plib_setup (int argc, char *argv[], char * version)
 			ret = 1;
 		  }
 		else fclose (fp);
+	  }
+
+	// Check if output path is valid
+	if (plib_SArgRun (pl[output]))
+	 {
+		const char *path = plib_SArgValue(pl[json_file], 0);
+		FILE *fp = fopen (path, "r");
+
+		if (!fp)
+		  {
+			fprintf(stderr,
+					"Failed to open output file \"%s\"", path);
+			ret = 1;
+		  }
+		else fclose(fp);
 	  }
 
 	// Check if input file is valid
