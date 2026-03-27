@@ -1,4 +1,4 @@
-Plate 1.0.0
+Plate 1.6.x
 -------------------------
 Plate is a basic tem(plate) generator for JSON. plate takes in a template and some JSON and will replace special triggers in the template with the values in the json. Plate can iterate through arrays of data and output templates of each part of the data. Plate also takes an input file where you can specifiy a "input trigger" that the template(s) will be written too.
 Plate was designed for generating static websites using data from json files. An example usecase would be a portfoio website that uses the GitHub api to populate its pages.
@@ -18,18 +18,17 @@ Options:
 --version     | -v | Show version number.
 
 -----------------------
+Versioning:
+x.y.z
+x: major version, usually the current re-write
+y: mean version, usually the amount of larger updates.
+z: minor version, the amount of commitments since the last major version.
+
+----------------------
 Building:
 
-If you want to simply build the program you can do the following:
-make
-./plate
+To build plate simply run:
+$ make
 
-By default this is a debug build, to make and install a release version of plate do the following
-make MAKE_RELEASE=1
-(sudo) mv plate /usr/bin/plate
-
-if you are debugging this program and you see a weird error code changes are its just the builtin debug output messing it up, you can simply use the following to test the program and disable the debug
-make MAKE_RELEASE=1 test
-
------------------------
-Read the Makefile file for more info.
+To install plate, run
+$ sudo make install

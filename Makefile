@@ -1,9 +1,10 @@
 CC             := cc
 OS             := $(shell uname -s)
-VERSION_MEAN   := $(shell git rev-list --count --all)
+V_MAJ          := 1
+V_MEAN         := 3
+V_MIN          := $(shell git rev-list --count --all)
 COUNTER_FILE   := .version
-VERSION_MIN    := $(shell cat .version)
-VERSION        := 1.$(VERSION_MEAN).$(VERSION_MIN)
+VERSION        := $(V_MAJ).$(V_MEAN).$(V_MIN)
 CFLAGS         := -DPLATE_VERSION=\"$(VERSION)\"
 CFLAGS_RELEASE := -O3 -g
 CFLAGS_DEBUG   := -g -fsanitize=address -fsanitize=undefined -O0 -Wall -Wextra
@@ -12,16 +13,11 @@ PREFIX         := /usr
 all: clean plate
 
 # Debug
-ifndef RELEASE
+ifdef DEBUG
 CFLAGS := $(CFLAGS_BASE) $(CFLAGS_DEBUG)
 else
 CFLAGS := $(CFLAGS_BASE) $(CFLAGS_RELEASE)
 endif
-
-update-version: $(COUNTER_FILE)
-	@current=$$(cat $(COUNTER_FILE)); \
-	new=$$((current + 1)); \
-	echo "$$new" > $(COUNTER_FILE); \
 
 # Build Plate
 ifneq ($(filter $(OS),Linux Darwin),)
@@ -33,18 +29,9 @@ plate: plate.o
 	if command -v "$(CC)" >/dev/null 2>&1; then
 		# Debug options
 		$(CC) $(CFLAGS) $^ -o $@
-		if [  $$? -eq 0 ];then 
-			@echo "--------------------"
-			@echo "Built $@ $(VERSION) sucessfully"
-			make update-version
-			exit 0
-		else
-			@echo "Something went wrong."
-			exit 1
-		fi
+		@echo "Built $@ $(VERSION) sucessfully"
 	else
 		@echo "$(CC) not available"
-		exit 1
 	fi
 else
 plate:
