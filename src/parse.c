@@ -99,6 +99,21 @@ char_in_string(char *str, char ch, int N)
 	return -1;
 }
 
+// Similar to char_in_string, but this function returns the last occurance of 
+// `ch` in `str`
+static int
+last_char_in_string(char *str, char ch)
+{
+	const int str_s = strlen(str);
+	int rel = -1;
+
+	// For char in `str`
+	for (int i = 0; i < str_s; i++)
+		if (str[i] == ch)
+			rel = str[i];
+	return rel;
+}
+
 
 // Gets a value closed in other chars E.g if you had `str` as "(test)" and you
 // had an `open` of '(' and a `close` of ')' then it would return "test"
@@ -147,8 +162,8 @@ static int
 is_ternary(char *str)
 {
 	const int true_sep = char_in_string(str, '?', 0);
-	const int false_sep = char_in_string(str, ':', 0);
-	const int brace_count = count_char_in_str(str, '(') 
+	const int false_sep = last_char_in_string(str, ':');
+	const int brace_count = count_char_in_str(str, '(')
 		+ count_char_in_str(str, ')');
 
 	return (true_sep != -1
@@ -156,12 +171,33 @@ is_ternary(char *str)
 			&& brace_count >= 2);
 }
 
+static void
+parse_ternary(char *str)
+{
+	const int true_sep = char_in_string(str, '?', 0);
+	const int false_sep = char_in_string(str, ':', 0);
+	const int str_s = strlen(str);
+
+	if (str_s == -1)
+		return;
+	
+	char condition[64];
+	snprintf(condition, true_sep + 1, "%s",  str);
+
+	char true_value[64];
+	snprintf(true_value, false_sep - true_sep, "%s", str + true_sep + 1);
+
+	char false_value[64];
+	snprintf(false_value, str_s - false_sep, "%s", str + false_sep + 1);
+
+	printf("cond: %s, true: %s, false: %s\n", condition, true_value, false_value);
+}
+
+
+
 
 int main (){
 	// ternary example:
-
-	char string1[] = "jhasjdhasjd(test123)asjkdasdjaksd";
-	char *string2 = get_closed_value(string1, '(', ')');
-	printf("%s\n", string2);
-	free(string2);
+	char tern[] = "condition?value1:value2";
+	parse_ternary(tern);
 }

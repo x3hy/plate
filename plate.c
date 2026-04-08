@@ -69,7 +69,7 @@
 // not then do nothing..
 #define s_free(ptr) if (ptr) free (ptr)
 
-#define BUF_SIZE 128
+#define BUF_SIZE 512
 
 int
 main (int argc, char *argv[])
