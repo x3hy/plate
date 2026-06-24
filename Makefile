@@ -24,7 +24,7 @@ clean:
 	rm -rf plate plate_tmp plate.tar.gz *.o
 
 test: $(PROG_NAME) test-file.csv
-	./$(PROG_NAME) -I=$(lastword $^)
+	./$(PROG_NAME) -I=$(lastword $^) -T="<p><!--Id--> - <!--Name--></p>"
 
 
 .PHONY: clean $(PROG_NAME) test

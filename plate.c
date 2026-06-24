@@ -13,6 +13,10 @@
 /* variables */
 FILE *in = NULL;
 FILE *out = NULL;
+char *template = NULL;
+
+char *prefix = NULL;
+char *suffix = NULL;
 
 /* function declarations */
 int argparse(int argc, char *argv[]);
@@ -25,6 +29,11 @@ int main(int argc, char *argv[]){
 
 	if (in == NULL){
 		error("Must provide -I input file\n");
+		return 1;
+	}
+
+	if (template == NULL){
+		error("must provide a -T template string\n");
 		return 1;
 	}
 
@@ -94,13 +103,36 @@ int argparse(int argc, char *argv[]){
 			}
 		}
 
-		arg_option('T', "Template"){
+		arg_option('T', "Set the data template"){
 			arg_hasvalue {
-			
+				char *value = arg_align;
+				template = strdup(value);
 			} else {
-				error("-T requires a value")
+				error("-T requires a value\n");
+				return 1;
+			}
+		}
+
+		arg_option('p', "Set the data template prefix trigger"){
+			arg_hasvalue {
+				char *value = arg_align;
+				template = strdup(value);
+			} else {
+				error("-T requires a value\n");
+				return 1;
+			}
+		}
+
+		arg_option('s', "Set the data template suffix trigger"){
+			arg_hasvalue {
+				char *value = arg_align;
+				template = strdup(value);
+			} else {
+				error("-T requires a value\n");
+				return 1;
 			}
 		}
 	}
+
 	return 0;
 }
