@@ -1,7 +1,11 @@
 Plate 1.0.0
+!!! CURRENTLY WORK IN PROGRESS !!!
 ---
-Plate is a tem(plate) generator that can iterate through CSV data, and
-mapping said data into a given template.
+Plate is a simple program which parses CSV data from a file, into a template. Specifically, I built this for data-heavy, static website generation for pages with heavy reliance on iteratable data.
+
+Plate uses CSV because its easy to implement. Included in this project is a json2csv converter script that uses jq.
+
+I use this project for my personal website, where plate uses parsed GitHub API data to populate the page
 
 # BUILD:
 make
