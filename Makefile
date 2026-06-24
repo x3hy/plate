@@ -1,11 +1,15 @@
 CC := cc
-CFLAGS :=
 PROG_NAME := plate
+VER := \"$(shell git describe --tags --always 2>/dev/null)\"
+CFLAGS := -DVERSION=$(VER)
 
 all: $(PROG_NAME)
 
-$(PROG_NAME): $(PROG_NAME).c
-	$(CC) $(CFLAGS) -o $@ $^
+$(PROG_NAME): $(PROG_NAME).o
+	$(CC) $(CFLAGS) $^ -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # generate targz
 tar: $(PROG_NAME)
@@ -17,8 +21,10 @@ tar: $(PROG_NAME)
 	rm -rf $(PROG_NAME)_tmp
 
 clean:
-	-rm plate
-	-rm plate_tmp
-	-rm plate.tar.gz
+	rm -rf plate plate_tmp plate.tar.gz *.o
 
-.PHONY: clean $(PROG_NAME)
+test: $(PROG_NAME) test-file.csv
+	./$(PROG_NAME) -I=$(lastword $^)
+
+
+.PHONY: clean $(PROG_NAME) test

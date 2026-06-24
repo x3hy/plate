@@ -1,0 +1,10 @@
+Plate 1.0.0
+---
+Plate is a tem(plate) generator that can iterate through CSV data, and
+mapping said data into a given template.
+
+# BUILD:
+make
+
+# INSTALL:
+sudo make install

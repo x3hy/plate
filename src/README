@@ -1,9 +1,0 @@
-Remote contains other repo's code, currently it contains:
-- cJSON: DaveGamble/cJSON
-- arglib: x3hy/arglib
-
-Deprecated contains old/refactored plate code, do not reference these files for use in other modular systems.
-
----
-
-Files in the current folder are [modules] dependencies.
