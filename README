@@ -1,14 +1,65 @@
 Plate 1.0.0
-!!! CURRENTLY WORK IN PROGRESS !!!
----
-Plate is a simple program which parses CSV data from a file, into a template. Specifically, I built this for data-heavy, static website generation for pages with heavy reliance on iteratable data.
 
-Plate uses CSV because its easy to implement. Included in this project is a json2csv converter script that uses jq.
+Plate is a tem(plate) engine that lets you load data from a CSV file into a
+given template. Plate has the feature to load a source file and place the
+templates after a specific line. Plate only supports CSV input data so in
+order to use JSON data, you can use the included json2csv python script which
+will convert JSON 2 CSV.
 
-I use this project for my personal website, where plate uses parsed GitHub API data to populate the page
+I build plate for my personal website. I rip my Github API data and use Plate
+to display said data on my website. Generally Plate can be universal.
 
-# BUILD:
-make
+Plate works as follows, you provide a template, for example here's one in
+HTML:
+<p><!--$test--></p>
 
-# INSTALL:
-sudo make install
+Now, Plate will search through the given template, looking for a keyword
+encapsulated within a specific prefix and suffix. The defaults in Plate are
+"<!--$" and "-->" which, when applied to the template above, allows us to
+locate and swap the "test" keyword. Plate will then search this keyword within
+the header line of a given CSV file, if the keyword is found then plate will
+replace the prefix + keyword + suffix with the value of the found data (Plate
+runs over every row in a given CSV data file).
+
+If you have the following CSV:
+id, title, description
+ 1, test1, tester 1
+ 2, test2, tester 2
+ 3, test3, tester 3
+
+With the following template:
+<p>
+	<mark><--$id--></mark>
+	<b><!--$title--></b>
+	<i><!--$description--></i>
+</p>
+
+Plate would return:
+
+<p>
+	<mark>1</mark>
+	<b>test1</b>
+	<i>tester1</i>
+</p>
+
+<p>
+	<mark>2</mark>
+	<b>test2</b>
+	<i>tester2</i>
+</p>
+
+<p>
+	<mark>3</mark>
+	<b>test3</b>
+	<i>tester3</i>
+</p>
+
+-------
+
+The -i and -t flags are very useful. The -i flag lets you specify a source
+file and the -t flag lets you define a trigger inside the source file where
+Plate will insert the generated templates.
+
+-------
+BUILDING:
+make plate
