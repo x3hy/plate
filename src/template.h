@@ -1,8 +1,11 @@
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
 
-// TODO: re-implement this from BSD source
 #include <string.h>
+#include <stdio.h>
+// for strdup
+
+// TODO: re-implement this from BSD source
 static int estrlen(char *str){
 	return strlen(str);
 }
@@ -27,8 +30,6 @@ static int strwstart(char *whole, char *end){
 	return 0;
 }
 
-#include <string.h>
-// for strdup
 
 /* Locate encapsulated strings (within prefix and suffix) and run it through the get_value().
  * then replace the returned string of get_value() into the template, without the prefix and
@@ -38,14 +39,13 @@ static int strwstart(char *whole, char *end){
  * Output is not checked for size, ensure it has enough memory.
  */
 static int generate_template(char *tplate, char *prefix, char *suffix,
-		char *output[], int (*get_value)(char **), void (*free_value)(char **)){
+		FILE*output, int (*get_value)(char **, void*), void (*free_value)(char **), void *pass){
 	
 	// Required values
 	if (tplate == NULL || prefix == NULL || suffix == NULL)
 		return -1;
 
 	int template_size = estrlen(tplate);
-	char *out = *output;
 	int start_pos, out_pos, end_pos;
 	start_pos = out_pos = end_pos = 0;
 
@@ -67,17 +67,16 @@ static int generate_template(char *tplate, char *prefix, char *suffix,
 			value[end_pos - start_pos] = '\0';
 
 			// Copy the value back to the string
-			if (get_value(&value)) return 1;
+			if (get_value(&value, pass)) return 1;
 			for (int i = 0; i < estrlen(value); i++)
-				out[out_pos++] = value[i];
+				fputc(value[i], output);
 
 			// Free value if need be
 			free_value(&value);
 
 			// TODO explain this
 			i += 2;
-		} else out[out_pos++] = tplate[i];
-	out[out_pos] ='\0';
+		} else fputc(tplate[i], output);
 	return 0;
 }
 #endif // TEMPLATE_H

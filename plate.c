@@ -1,8 +1,10 @@
 %:include "src/arglib.h"
-%:include "src/csv.h"
 %:include "src/template.h"
 %:include <stdio.h>
+%:include <stdlib.h>
 //%:include <string.h>
+
+%:include <yajl/yajl_tree.h>
 
 // Macroslop
 #ifndef VERSION
@@ -28,16 +30,14 @@ char *prefix = NULL;
 char *suffix = NULL;
 char *trigger = NULL;
 
-int csv_idx = 1;
 int quiet = 0;
-char **CSV = NULL;
 
 /* function declarations */
 int argparse(int argc, char *argv[]);
 char *strdup(const char *src);
-int header_to_value(char **src);
+int header_to_value(char **src, void *arg);
 void free_header(char **str);
-int write_CSV(void);
+int write_templates(void);
 
 /* main start */
 int main(int argc, char *argv[]){
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
 
 	// If a trigger is provided
 	if (trigger == NULL){
-		if (write_CSV()){
+		if (write_templates()){
 			error("Something went wrong..\n");
 			return 1;
 		}
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
 				continue;
 			}
 
-			if (write_CSV()){
+			if (write_templates()){
 				error("Something went wrong..\n");
 				return 1;
 			}
@@ -194,33 +194,31 @@ int argparse(int argc, char *argv[]){
 	return 0;
 }
 
+// frick this
+char *get_yajl_as_str(yajl_val node){
+	if (!node) return NULL;
+	if (YAJL_IS_STRING(node))      return strdup(YAJL_GET_STRING(node));
+	else if (YAJL_IS_NUMBER(node)) return strdup(YAJL_GET_NUMBER(node));
+	else if (YAJL_IS_TRUE(node))   return strdup("true");
+	else if (YAJL_IS_FALSE(node))  return strdup("false");
+	else if (YAJL_IS_NULL(node))   return strdup("null");
+	else if (YAJL_IS_OBJECT(node)) return strdup("[object]");
+	else if (YAJL_IS_ARRAY(node))  return strdup("[array]");
+	return NULL;
+}
+
 // Fetch a CSV value
-int header_to_value(char **src){
-	char * header = strdup(CSV[0]);
-	char * tok = strtok(header, ",");
-	int idx = 0;
-
-	// Locate the header
-	while(tok){
-		if (strcmp(tok, *src) == 0){
-			char *row = strdup(CSV[csv_idx]);
-			char * tokv = strtok(row, ",");
-
-			// Locate the value
-			for (int i = 0; i < idx; i++)
-				tokv = strtok(NULL, ",");
-
-			// Copy over
-			*src = strdup(tokv);
-			free(row);
-			break;
-		}
-
-		idx ++;
-		tok = strtok(NULL, ",");
+int header_to_value(char **src, void *arg){
+	yajl_val node = (yajl_val)arg;
+	if (!YAJL_IS_OBJECT(node)){
+		return 0;
 	}
 
-	free(header);
+	size_t arr_size = node->u.object.len;
+	for (int i = 0; i < arr_size; i ++)
+		if (!strcmp(node->u.object.keys[i], *src))
+			*src = get_yajl_as_str(node->u.object.values[i]);
+
 	return 0;
 }
 
@@ -229,39 +227,68 @@ void free_header(char **str){
 	free (*str);
 }
 
-// Writes the CSV data to the file
-int write_CSV(){
-	// Load the CSV file
-	int csv_rows = 0;
-	CSV = csv_to_char_array(in, &csv_rows);
+// Loads JSON file in YAJL
+int write_templates(){
+	yajl_val node;
+	char errbuf[1024];
 
-	// For each line in the CSV
-	for (csv_idx = 1; csv_idx < csv_rows; csv_idx++){
-		
-		// Very dirty. TODO: form-fit this or include DMA in template gen
-		const int line_len = strlen(CSV[csv_idx]) + strlen(template);
-		char *value = (char *)malloc(line_len);
-		char *tmp_template = strdup(template);
+	if (!in) return -1;
 
-		// CSV[0] is the headers of the CSV file
-		if(generate_template(tmp_template, prefix, suffix, &value,
-					header_to_value, free_header) != 0){
-			free(value);
-			free(tmp_template);
-			error("Template generation failed\n");
-			return 1;
-		}
+	// Get input file size
+	fseek(in, 0, SEEK_END);
+	long in_s = ftell(in);
+	fseek(in, 0, SEEK_SET);
 
-		// Write the template to file
-		fputs(value, out);
-		fputc('\n', out); // not neccercery but it is for my eyes
-
-		free(value);
-		free (tmp_template);
+	// MOVE to RAM
+	char *JSON = (char *)malloc(in_s + 1);
+	if (JSON == NULL){
+		fclose(in);
+		return -2;
 	}
-	
-	// Cleanup
-	free_csv_array(CSV, csv_rows);
+
+	fread(JSON, 1, in_s, in);
+	JSON[in_s] = '\0';
+
+	// Load into YAJL
+	node = yajl_tree_parse((const char *)JSON, errbuf, sizeof(errbuf));
+	if (node == NULL){
+		fprintf(stderr, "parse_error:");
+		if (strlen(errbuf)) fprintf(stderr,
+			   " %s", errbuf);
+		else fprintf(stderr, "Unknown");
+		fputc('\n', stderr);
+		return 1;
+	}
+
+	const char *path[] = { (const char *)0};
+	yajl_val v = yajl_tree_get(node, path, yajl_t_array);
+	if (v){
+		size_t len = node->u.array.len;
+		size_t i;
+
+		// For each item in array
+		for (i = 0;i < len; ++i){
+			char *template_tmp = strdup(template);
+			yajl_val item = node->u.array.values[i];
+
+			// loop through items
+			if (generate_template(template_tmp, prefix, suffix, out,
+					header_to_value, free_header, item) != 0){
+				printf ("Template generation failed\n");
+				free (template_tmp);
+				return -3;
+			}
+
+			free (template_tmp);
+		}
+	}
+	else {
+		fprintf(stderr, "Could not load path\n");
+		return -3;
+	}
+
+
+	yajl_tree_free(node);
 	return 0;
 }
 
