@@ -7,7 +7,6 @@
 
 #define CSV_BUF_SIZE 1024
 
-
 // Reads each line in a file
 static char *read_line(FILE *in){
 	size_t len = 0;
@@ -90,7 +89,7 @@ static char *csv_header_to_value(const char *header, char *row, const char *key,
 		if (!strcmp(header_tok, key)){
 			// Return the found value
 			free(header_copy);
-			return row_tok;
+			return strdup(row_tok);
 		}
 
 		// Move to next tok
