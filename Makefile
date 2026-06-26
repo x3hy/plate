@@ -1,30 +1,30 @@
 CC := cc
-PROG_NAME := plate
-VER := \"$(shell git describe --tags --always 2>/dev/null)\"
+PREFIX := /usr/bin
+VER := \"$(shell cat .version)\"
 CFLAGS := -DVERSION=$(VER) -g
-TEMPLATE := "<p><b><!--\$$Index--></b> <mark><!--\$$Name--></mark>, <i><!--\$$Description--></i></p>"
 
-all: $(PROG_NAME)
+all: clean plate
 
-$(PROG_NAME): $(PROG_NAME).o
+.version: README plate
+	git describe --tags --always 2>/dev/null >$@
+	sed -i '1s/.*/Plate-$(shell cat .version)/' $(firstword $^)
+
+plate: plate.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# generate targz
-tar: $(PROG_NAME)
-	-make clean
-	mkdir $(PROG_NAME)_tmp
-	-cp -rT . $(PROG_NAME)_tmp
-	-rm -rf $(PROG_NAME)_tmp/.git
-	tar -czvf $(PROG_NAME).tar.gz $(PROG_NAME)_tmp
-	rm -rf $(PROG_NAME)_tmp
-
 clean:
 	rm -rf plate plate_tmp plate.tar.gz *.o
 
-test: $(PROG_NAME) src/test/test-file.csv
-	./$(PROG_NAME) -I=$(lastword $^) -T=$(TEMPLATE) -o=test.html -i=source.html -t="<!--data-here-->"
+install: plate json2csv
+	cp -f plate $(PREFIX)
+	cp -f json2csv $(PREFIX)/plate_json2csv
+	chmod 755 $(PREFIX)/bin/plate
+	chmod 755 $(PREFIX)/bin/plate_json2csv
 
-.PHONY: clean $(PROG_NAME) test
+uninstall:
+	rm -f $(PREFIX)/plate $(PREFIX)/plate_json2csv
+	
+.PHONY: clean $(PROG_NAME) test .version
