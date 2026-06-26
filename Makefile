@@ -21,8 +21,8 @@ clean:
 install: plate json2csv
 	cp -f plate $(PREFIX)
 	cp -f json2csv $(PREFIX)/plate_json2csv
-	chmod 755 $(PREFIX)/bin/plate
-	chmod 755 $(PREFIX)/bin/plate_json2csv
+	chmod 755 $(PREFIX)/plate
+	chmod 755 $(PREFIX)/plate_json2csv
 
 uninstall:
 	rm -f $(PREFIX)/plate $(PREFIX)/plate_json2csv
