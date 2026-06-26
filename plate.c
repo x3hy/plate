@@ -212,6 +212,7 @@ int header_to_value(char **src){
 
 			// Copy over
 			*src = strdup(tokv);
+			free(row);
 			break;
 		}
 
