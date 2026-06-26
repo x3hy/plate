@@ -167,6 +167,8 @@ int argparse(int argc, char *argv[]){
 				return 1;
 			}
 		}
+		arg_option('q', "Disable stdout output")
+			quiet = 1;
 	}
 
 	if (!arglib_help){
