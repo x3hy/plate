@@ -2,6 +2,7 @@ CC := cc
 PROG_NAME := plate
 VER := \"$(shell git describe --tags --always 2>/dev/null)\"
 CFLAGS := -DVERSION=$(VER)
+TEMPLATE := "<p><!--\$$Brand--> - <!--\$$Name--></p>"
 
 all: $(PROG_NAME)
 
@@ -24,7 +25,9 @@ clean:
 	rm -rf plate plate_tmp plate.tar.gz *.o
 
 test: $(PROG_NAME) test-file.csv
-	./$(PROG_NAME) -I=$(lastword $^) -T="<p><!--Id--> - <!--Name--></p>"
+	./$(PROG_NAME) -I=$(lastword $^) -T=$(TEMPLATE)
 
+debug: $(PROG_NAME) test-file.csv
+	gdb -q -ex "set debuginfod enabled on" -ex run -ex exit --args ./$(firstword $^) -I=$(lastword $^) -T=$(TEMPLATE)
 
 .PHONY: clean $(PROG_NAME) test
