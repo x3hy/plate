@@ -10,6 +10,13 @@
 
 #define error(...) fprintf(stderr, __VA_ARGS__)
 
+#define snprintm(str, ...) \
+	do { \
+		const int str_s = snprintf (NULL, 0, __VA_ARGS__) + 1; \
+		str = (char *)malloc (str_s); \
+		snprintf(str, str_s, __VA_ARGS__); \
+	} while (0)
+
 /* variables */
 FILE *in = NULL;
 FILE *out = NULL;
@@ -20,6 +27,7 @@ char *suffix = NULL;
 
 /* function declarations */
 int argparse(int argc, char *argv[]);
+int gen_template(char *str, char *header, char *row);
 char *strdup(const char *src);
 
 /* main start */
@@ -51,6 +59,7 @@ int main(int argc, char *argv[]){
 		char *value = csv_header_to_value(CSV[0], CSV[i], "Index", ",");
 		if (value == NULL){
 			error("Failed to read value\n");
+
 			continue;
 		}
 
@@ -134,5 +143,62 @@ int argparse(int argc, char *argv[]){
 		}
 	}
 
+	return 0;
+}
+
+int find_char_in_str(int skip, char *str, char ch){
+	for(int i = 0; i < strlen(str); i++)
+		if (str[i] == ch && i > skip)
+			return i;
+	return -1;
+}
+
+// gen
+int gen_template(char *str, char *header, char *row){
+	const int suf_s = strlen (suffix);
+	const int pre_s = strlen (prefix);
+	char ca = '$';
+	int tok = find_char_in_str(0, str, ca);
+	char *copy = (char *)strdup (str);
+	
+	for (;;){
+		if (tok == -1 || strlen(copy) < tok) break;
+
+		// detect prefix
+		if (tok >= pre_s){
+			for (int i=0; i < pre_s;i++){
+				const char s1 = copy[tok - i];
+				const char s2 = prefix[pre_s - i - 1];
+				if (s1 != s2) goto end;
+			  }
+		  }
+
+		// detect suffix
+		int suf_tok = tok;
+		if (tok >= suf_s){
+			suf_tok = find_char_in_str (suf_tok, copy, suffix[0]);
+			if (suf_tok == -1) goto end;
+			for (int i = 0; i < suf_s;i++){
+				const char s1 = copy[suf_tok+i];
+				const char s2 = suffix[i];
+				if (s1 != s2) goto end;
+			  }
+		  }
+
+		// Fetch value
+		char *value;
+		snprintm(value, "%.*s",suf_tok - (tok+1), str+(tok + 1));
+		fprintf(out, "%.*s",(tok - pre_s + 1), str);
+		char *prop = csv_header_to_value (header, row, value, ",");
+		fputs(prop, out);
+		free(value);
+
+		// incriment tok and continue
+		end:
+		tok = find_char_in_str (0, str, ca);
+	  }
+
+	fprintf(out, "%s\n", str);
+	free(copy);
 	return 0;
 }
