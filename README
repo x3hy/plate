@@ -1,20 +1,18 @@
 Plate-1.0.0-19-g6436d16
 -----------------------
 
-Plate is a tem(plate) engine that lets you load data from a CSV file into a
+Plate is a tem(plate) engine that lets you load data from a JSON file into a
 given template. Plate has the feature to load a source file and place the
-templates after a specific line. Plate only supports CSV input data so in
-order to use JSON data, you can use the included json2csv python script which
-will convert JSON 2 CSV.
+templates after a specific line.
 
 I build plate for my personal website. I rip my Github API data and use Plate
-to display said data on my website. Generally Plate can be universal. Now, Plate will search through the given template, looking for a keyword
+to display said data on my website. Generally Plate can be universal. Now,
+Plate will search through the given template, looking for a keyword
 encapsulated within a specific prefix and suffix. The defaults in Plate are
 "<!--$" and "-->" which, when applied to the template above, allows us to
 locate and swap the "test" keyword. Plate will then search this keyword within
-the header line of a given CSV file, if the keyword is found then plate will
-replace the prefix + keyword + suffix with the value of the found data (Plate
-runs over every row in a given CSV data file).
+the iterated objects of a given JSON file, if the keyword is found then plate
+will replace the prefix + keyword + suffix with the value of the found data.
 
 The -i and -t flags are very useful. The -i flag lets you specify a source
 file and the -t flag lets you define a trigger inside the source file where
@@ -31,3 +29,6 @@ OPTIONS:
 	clean     | Remove object files and build files
 	install   | Install Plate globally
 	uninstall | Uninstall plate globally
+
+Mentioned:
+https://x3hy.github.io/data/pages/f32cbcd0-c594-4a16-b93b-bdcb2c9b2573.html
