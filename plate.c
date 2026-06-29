@@ -209,49 +209,69 @@ char *get_yajl_as_str(yajl_val node){
 	return NULL;
 }
 
-// Fetch a CSV value
+// Gets a path in an object delimited from a char*
+yajl_val get_path_obj(const char *path, char *split,  yajl_val base){
+	char * token = strdup(path);
+	char *tok = strtok(token, split);
+	yajl_val cur = base;
+
+	while (tok != NULL && cur != NULL)
+		cur = yajl_tree_get(cur, (const char *[]){tok, (const char *)0}, yajl_t_array);
+
+	free(token);
+	return cur ? cur : NULL;
+}
+
+// Fetch a CSV value (for the template function)
 int header_to_value(char **src, void *arg){
 	yajl_val node = (yajl_val)arg;
 	if (!YAJL_IS_OBJECT(node)){
 		return 0;
 	}
 
+	// Locate the key in key:val and return the val.
 	size_t arr_size = node->u.object.len;
 	for (int i = 0; i < arr_size; i ++)
 		if (!strcmp(node->u.object.keys[i], *src))
 			*src = get_yajl_as_str(node->u.object.values[i]);
-
 	return 0;
 }
 
-// Frees the CSV value
+// Frees the CSV value (for the template function)
 void free_header(char **str){
 	free (*str);
 }
 
-// Loads JSON file in YAJL
-int write_templates(){
-	yajl_val node;
-	char errbuf[1024];
+// Loads file contents into ram
+char* load_file_mem(FILE *fp){
+	if (!fp) return NULL;
+	fseek(fp, 0, SEEK_END);
 
-	if (!in) return -1;
+	// Get the file size
+	long in_s = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
 
-	// Get input file size
-	fseek(in, 0, SEEK_END);
-	long in_s = ftell(in);
-	fseek(in, 0, SEEK_SET);
-
-	// MOVE to RAM
-	char *JSON = (char *)malloc(in_s + 1);
-	if (JSON == NULL){
-		fclose(in);
-		return -2;
+	// Allocate size
+	char *out = (char *)malloc(in_s + 1);
+	if (out == NULL){
+		fclose (fp);
+		return NULL;
 	}
 
-	fread(JSON, 1, in_s, in);
-	JSON[in_s] = '\0';
+	// Copy and null-terminate
+	fread(out, 1, in_s, in);
+	out[in_s] = '\0';
+	return out;
+}
+
+// Loads JSON file in YAJL
+int write_templates(){
+	if (!in) return -1;
+	char *JSON = load_file_mem(in);
 
 	// Load into YAJL
+	char errbuf[1024];
+	yajl_val node;
 	node = yajl_tree_parse((const char *)JSON, errbuf, sizeof(errbuf));
 	if (node == NULL){
 		fprintf(stderr, "parse_error:");
@@ -262,35 +282,22 @@ int write_templates(){
 		return 1;
 	}
 
-	const char *path[] = { (const char *)0};
-	yajl_val v = yajl_tree_get(node, path, yajl_t_array);
-	if (v){
-		size_t len = node->u.array.len;
-		size_t i;
+	// For each object in array
+	for (size_t i = 0;i < node->u.array.len; ++i){
+		char *template_tmp = strdup(template);
+		yajl_val item = node->u.array.values[i];
 
-		// For each item in array
-		for (i = 0;i < len; ++i){
-			char *template_tmp = strdup(template);
-			yajl_val item = node->u.array.values[i];
-
-			// loop through items
-			if (generate_template(template_tmp, prefix, suffix, out,
-					header_to_value, free_header, item) != 0){
-				printf ("Template generation failed\n");
-				free (template_tmp);
-				return -3;
-			}
-
+		// Generate a template for each
+		if (generate_template(template_tmp, prefix, suffix, out, header_to_value, free_header, item) != 0){
+			printf ("Template generation failed\n");
 			free (template_tmp);
+			yajl_tree_free(node);
+			return -3;
 		}
-	}
-	else {
-		fprintf(stderr, "Could not load path\n");
-		return -3;
-	}
 
+		free (template_tmp);
+	}
 
 	yajl_tree_free(node);
 	return 0;
 }
-
