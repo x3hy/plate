@@ -16,7 +16,7 @@ plate: plate.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf plate plate_tmp plate.tar.gz *.o
+	rm -rf plate *.o
 
 install: plate
 	cp -f plate $(PREFIX)

@@ -81,6 +81,11 @@ int main(int argc, char *argv[]){
 
 // Handle arguments
 int argparse(int argc, char *argv[]){
+	if (argc == 1){
+		fprintf(stderr, "Run -h for more info\n");
+		return 1;
+	}
+
 	arg_args (argc, argv){
 		arg_option ('h', "Show this menu")
 			arg_help(argparse);
