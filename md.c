@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	// Handle input
+	// Handle input location
 	FILE *in = fopen(argv[1], "r");
 	if (in == NULL){
 		fprintf(stderr, "Failed to open %s\n", argv[1]);
@@ -101,7 +101,6 @@ int main(int argc, char *argv[]){
 		}
 		fputc('\n', out);
 	}
-
 
 	free(line);
 	fclose(in);

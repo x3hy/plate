@@ -18,6 +18,10 @@ The -i and -t flags are very useful. The -i flag lets you specify a source
 file and the -t flag lets you define a trigger inside the source file where
 Plate will insert the generated templates.
 
+Also along with the project I've added a small markdown compiler that converts
+markdown into HTML and outputs it into a given file path. Check out md.c for
+more info.
+
 Build Options:
 --------------
 Please read the Makefile for more information.
