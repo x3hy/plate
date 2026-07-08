@@ -65,11 +65,11 @@ int main(int argc, char *argv[]){
 
 		// Header ###
 		} else if (!startswith(line, "###")){
-			snprintfm(line, "<h1>%s</h1>\n", buf + 4);
+			snprintfm(line, "<h3>%s</h3>\n", buf + 4);
 
 		// Header ##
 		} else if (!startswith(line, "##")){
-			snprintfm(line,  "<h1>%s</h1>\n", buf + 3);
+			snprintfm(line,  "<h2>%s</h2>\n", buf + 3);
 
 		// Header #
 		} else if (!startswith(line, "#")){
