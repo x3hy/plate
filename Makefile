@@ -12,17 +12,23 @@ all: clean plate
 plate: plate.o
 	$(CC) $(CFLAGS) $^ -o $@
 
+plate_md: md.o
+	$(CC) $(CFLAGS) $^ -o $@
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf plate *.o
+	rm -rf plate *.o plate_md
 
-install: plate
+install: plate plate_md
 	cp -f plate $(PREFIX)
+	cp -f plate_md $(PREFIX)
 	chmod 755 $(PREFIX)/plate
+	chmod 755 $(PREFIX)/plate_md
 
 uninstall:
 	rm -f $(PREFIX)/plate
+	rm -f $(PREFIX)/plate_md
 	
 .PHONY: clean $(PROG_NAME) test .version
