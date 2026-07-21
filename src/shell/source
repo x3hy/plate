@@ -1,0 +1,30 @@
+#!/bin/sh
+alias echo='echo -n'
+test_func(){
+	keyword="$1"
+	value="$1"
+	
+	case "$keyword" in
+	"my_value")
+		echo "your value is $value"
+	;; *)
+		echo "unknown usage"
+	;;
+	esac
+}
+
+# Setting alias
+_setting(){
+	echo "\"$1\") echo \"$2\" ;;"
+}
+alias setting='eval _setting'
+
+
+
+
+settings(){
+	case "$1" in
+		setting "MY_SETTING" 123
+
+	esac
+}
