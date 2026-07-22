@@ -2,21 +2,19 @@
 #include <stdlib.h>
 
 #define COM_BUFFER_SIZE 128
+#define COM_SHELL "/bin/sh -c"
+#define COM_SETTING_FUNC "settings"
 
-char *
-run_shell( const char *source_path, const char *function_name, const char *keyword, const char *value){
+// Shell setting loader
+char * load_setting(const char *source_path, const char *keyword){
 	char *buf = NULL;
 	char com[COM_BUFFER_SIZE];
-	snprintf(com, COM_BUFFER_SIZE, "/bin/sh -c \". %s && %s %s %s\"",
-		source_path,
-		function_name,
-		keyword,
-		value);
+	snprintf(com, COM_BUFFER_SIZE, "%s \". %s && %s %s %s\"",
+		COM_SHELL, source_path, COM_SETTING_FUNC, keyword);
 
 	// Run the command
 	FILE *stream = (FILE *)popen(com, "r");
-	if (stream == NULL)
-		return buf;
+	if (stream == NULL) return NULL;
 
 	// Copy command output to out
 	buf = (char *)malloc(COM_BUFFER_SIZE);
@@ -25,10 +23,9 @@ run_shell( const char *source_path, const char *function_name, const char *keywo
 }
 
 int main(){
-	char *output = run_shell("./source", "test_func", "my_value", "value123");
+	char * output= load_setting("./source", "TEST_FLAG");
 	if (output != NULL)
-		printf("output: \"%s\"\n", output);
-
+		printf("TEST_FLAG: \"%s\"\n", output);
 
 	free(output);
 	return 0;
