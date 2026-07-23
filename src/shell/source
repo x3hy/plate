@@ -2,20 +2,19 @@
 # Basic configuration file in shell
 #
 
-# Setting macro
-alias opt='_opt $1'
-_opt(){
-	[ "$1" = "$2" ] && printf '%s' "$3" && return 0;
-	[ ! -n "$3" ]   && printf '%s\n' "$1"
-	return 1;
+# Testing function
+function flag_function(){
+	echo "!!$@!!"
 }
 
-# Settings go here, all lines but the last
-# must have the double pipe (OR).
-settings(){
+# The load.c file can load properties in the
+# following format. All lines but the last must
+# contain the chaining "||" (OR) operator.
+function SETTINGS(){
 
-	#   Setting name  Value
-	opt "TEST_FLAG"   123 ||
-	opt "TEST_FLAG"	  124 ||
-	opt "TEST_FLAG_2" 124
+	#   Setting name | Value
+	opt "KERNEL_VER"  "$(uname -r)" ||
+	opt "TEST_FLAG_1"  "flag 1" ||
+	opt "TEST_FLAG_2"  "$(flag_function flag 3 )" ||
+	opt "TIME"         "$(date)"
 }

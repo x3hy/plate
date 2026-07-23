@@ -1,0 +1,19 @@
+#!/bin/sh
+# Loaded before config source
+#
+
+# Cross-platform function
+alias function=''
+
+# Setting macro
+alias opt='_opt $1'
+function _opt(){
+	if [ "$1" = "$2" ]; then
+		shift
+		shift
+		printf "%s" "$@" | tr -d '\n'
+		return 0;
+	elif [ ! -n "$3" ]; then printf '%s ' "$1"; fi
+	return 1;
+}
+
